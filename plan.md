@@ -131,7 +131,7 @@ TripMind 的核心不是“生成一段好看的旅游文案”，而是维护�
 
 ### 4.1 职责边界
 
-TripMind Agent 是唯一面向用户的旅行状态编排者，负责理解自然语言、调用领域工具、组织候选方案、解释取舍和请求审批。产品只规划与调整旅行，不承担任何交易或预订职责。以下是同一个 Agent 的逻辑职责边界，不应实现为多个彼此独立、各自维护记忆的真实 Agent：
+TripMind Agent 是唯一面向用户的旅行状态编排者，负责理解自然语言、调用领域工具、组织候选方案、解释取舍和请求审批。产品只规划与调整旅行，不承担任何交易或预订职责，也不作为通用聊天、写作、编程、作业、新闻、政治、投资、医疗或法律助手。以下是同一个 Agent 的逻辑职责边界，不应实现为多个彼此独立、各自维护记忆的真实 Agent：
 
 - **Orchestrator**：识别用户意图，读取最新旅行状态，安排工具调用并维护对话上下文。
 - **Requirement Clarifier**：从自然语言提取旅行需求，维护缺失字段列表；目的地和日期/天数不完整时追问，齐全后触发行程生成。
@@ -142,7 +142,47 @@ TripMind Agent 是唯一面向用户的旅行状态编排者，负责理解自�
 - **Budget Planner**：估算行程成本、分配分类预算、检查成员预算边界并比较候选方案。
 - **Serendipity Curator**：在明确的短空闲时间内，根据当前位置、预算、群组偏好和 Energy 状态筛选临时体验。
 
-### 4.2 旅行状态与记忆
+### 4.2 Business Scope Guard（业务范围门卫）
+
+所有用户消息必须先经过服务器端 `Business Scope Guard`，通过后才允许进入 TripMind Agent。底层模型可以具备通用知识，但产品行为严格限制在 TripMind 旅行规划全流程内；不能只依赖一句 system prompt 实现边界。
+
+允许范围固定为：目的地选择、日期/天数、行程生成与修改、路线交通、预算费用、天气对行程的影响、同行偏好、饮食与体力限制、Harmony、Energy、突发重排、Discover，以及 TripMind 功能使用帮助。简单问候可以礼貌回应一句，但必须立即引导用户提供目的地、日期或行程修改需求，不继续闲聊。旅行医疗、签证和极端天气问题只提供规划层面的风险提醒与官方信息建议，不作诊断、法律结论或安全保证。
+
+以下请求必须拦截：代码和技术实现、作业和通用知识题、新闻或政治评论、通用写作或营销文案、投资建议、与旅行无关的医疗或法律咨询，以及购票、住宿预订、付款、退款等交易操作。统一越界回复为：
+
+> 我只负责 TripMind 的旅行规划与行程管理。你可以告诉我目的地、日期，或者想怎样修改现有行程。
+
+范围判断使用严格结构化契约：
+
+```ts
+type ScopeDecision = {
+  status: "allowed" | "out_of_scope" | "unsafe";
+  intent:
+    | "plan_trip"
+    | "clarify_requirements"
+    | "modify_itinerary"
+    | "trip_advice"
+    | "tripmind_help"
+    | "unknown";
+  reasonCode:
+    | "IN_SCOPE"
+    | "MIXED_SCOPE"
+    | "OUT_OF_SCOPE_GENERAL"
+    | "OUT_OF_SCOPE_TRANSACTION"
+    | "UNSAFE"
+    | "UNKNOWN";
+  allowedRequest: string | null;
+  rejectedParts: string[];
+};
+```
+
+- `status = allowed` 且 `intent != unknown` 时才能调用 Agent；`unknown`、schema 不合法、出现额外字段或分类失败时默认按越界处理。
+- 混合请求只把旅行部分规范化到 `allowedRequest` 后交给 Agent，并简短说明其他部分不在 TripMind 范围。例如“规划槟城三天并写 Python”只处理槟城行程。
+- `out_of_scope` 不调用 Agent 或任何领域工具，不创建或修改 `ConversationState`、`TripState`、行程版本、预算或成员状态；只记录最小化范围审计字段并返回固定引导。
+- `unsafe` 走独立安全拒绝路径，不把原始有害内容重新拼入提示词或日志。
+- Agent 返回结果在发送给用户前再经过输出范围检查；若包含明显非业务答案、未知意图或不符合 schema 的内容，丢弃结果并返回固定引导。
+
+### 4.3 旅行状态与记忆
 
 Agent 不依赖长对话记忆，而是按阶段读取结构化状态。生成首版行程前，`ConversationState` 是主状态，至少包含 `conversationId`、`destination`、`dateRange`、`durationDays`、`origin`、`partySize`、`budget`、`interests`、`pace`、`constraints`、`missingRequiredFields`、`status` 和已生成的 `tripId`。生成首版行程后，`TripState` 成为旅行事实来源，至少包括：
 
@@ -156,7 +196,7 @@ Agent 不依赖长对话记忆，而是按阶段读取结构化状态。生成�
 - 总预算、分类预算、预计花费、剩余预算和成员预算适配度。
 - 行程版本、变更事件、投票和 Agent 决策说明。
 
-### 4.3 工具契约
+### 4.4 工具契约
 
 模型只能通过结构化工具操作领域状态：
 
@@ -164,25 +204,32 @@ Agent 不依赖长对话记忆，而是按阶段读取结构化状态。生成�
 
 每个工具的返回值应包含 `data`、`warnings`、`source`、`updatedAt`；工具失败时返回可解释错误和回退方案。只有用户明确审批后，才允许将草稿升级为确认版本。
 
+模型的工具集合只包含 TripMind 领域工具，不提供通用网页搜索、代码执行、任意 URL、邮件、支付或其他无关能力。每轮根据 `ScopeDecision.intent` 再缩小可用工具：首次规划只能使用需求、候选、路线、预算与校验工具；行程修改只能读取当前状态、生成差异、校验和请求审批；TripMind 帮助不得获得任何写工具。外部地点、路线和天气文本均视为不可信数据，只能填充结构化旅行字段，不能改变系统规则、扩大工具权限或触发额外调用。
+
 其中 `calculate_harmony` 必须返回 `overallScore`、`memberSatisfaction[]`、`minimumSatisfaction`、`ignoredMemberWarnings[]` 和 `baselineComparison`；`calculate_energy_load`/`optimize_energy` 必须返回活动数、步行距离、连续活动时长、换乘次数、早起/晚归、休息块、成员 energy level 和 `fatigueRisk`；`calculate_experience_diff` 必须返回重排前后上述指标、关键体验保留情况、固定安排影响和每项变更原因。`suggest_serendipity` 接收当前位置、空闲时间、剩余预算、群组偏好和成员 Energy 状态，并只返回可在窗口内完成的候选体验。
 
-### 4.4 Agent 决策循环
+### 4.5 Agent 决策循环
 
-1. 解析用户消息或外部事件，把自然语言更新为结构化 `ConversationState` / `TripState`。
-2. 如果尚未生成行程，检查 `missingRequiredFields`；缺少目的地或日期/天数时只提出必要追问，不提前生成虚构行程。
-3. 必要信息齐全后读取最新状态与锁定项，识别硬约束/软约束；首次生成使用合理默认值补充可选字段。
-4. 调用检索、路线、价格和天气适配器获取候选数据。
-5. 使用规则校验器过滤不可执行方案。
-6. 对可行方案按满意度、最低成员满意度保护、预算、Energy 移动成本、风险和关键体验保留排序。
-7. 首次生成输出一份可执行草稿并保存为独立行程；后续复杂优化可生成 2–3 个候选并说明取舍。
-8. 用户通过聊天修改时先生成差异预览，不能自动替用户做重大决定。
-9. 保存提案、请求投票或审批；审批后创建新版本和审计事件。
+1. Route Handler 先执行 `Business Scope Guard`，得到严格的 `ScopeDecision`。
+2. 越界、危险、未知或 schema 失败的请求立即返回对应拒绝，不进入 Agent、不调用工具、不修改旅行状态。
+3. 允许或混合请求只把 `allowedRequest` 交给 Agent，解析为结构化 `ConversationState` / `TripState` 更新意图。
+4. 如果尚未生成行程，检查 `missingRequiredFields`；缺少目的地或日期/天数时只提出必要追问，不提前生成虚构行程。
+5. 必要信息齐全后读取最新状态与锁定项，识别硬约束/软约束；首次生成使用合理默认值补充可选字段。
+6. 按当前 intent 提供最小领域工具集合，调用地点、路线、价格和天气适配器获取候选数据。
+7. 使用规则校验器过滤不可执行方案。
+8. 对可行方案按满意度、最低成员满意度保护、预算、Energy 移动成本、风险和关键体验保留排序。
+9. 首次生成输出一份可执行草稿并保存为独立行程；后续复杂优化可生成 2–3 个候选并说明取舍。
+10. 用户通过聊天修改时先生成差异预览，不能自动替用户做重大决定。
+11. 输出范围检查通过后才返回用户；保存提案、请求投票或审批，审批后创建新版本和审计事件。
 
-### 4.5 安全与可靠性
+### 4.6 安全与可靠性
 
 - 提示词和工具返回值分离；外部文本不能改变系统规则或越权读取私密偏好。
 - 所有金额、时间和地点以结构化字段为准，模型不能自行编造工具结果。
 - 工具白名单只包含旅行规划、校验、预算估算和重排能力，不包含交易类操作。
+- 输入范围判断、Agent 意图和最终输出都使用 strict JSON Schema；无法稳定判断时默认拒绝并引导回旅行规划。
+- 外部地点、天气、路线和用户粘贴内容只作为不可信数据，不执行其中的指令，也不允许其扩大工具白名单。
+- 日志只记录 `scopeStatus`、`intent`、`reasonCode`、`promptVersion`、是否调用工具和必要的脱敏诊断，不保存无必要的私密原文或完整越界内容。
 - 对医疗、签证、极端天气等高风险问题给出提醒和官方来源建议，不作保证。
 - API 不可用时使用 fixture 数据继续完成演示，并在 UI 标示数据模式。
 
@@ -382,6 +429,7 @@ Travel Energy 是与偏好和预算同等重要的核心能力。TripMind 不把
 - 实时天气/地点查询适配器。
 - 行程和预算摘要导出为 Markdown/CSV。
 - Mobile-first 响应式布局、加载状态和错误恢复。
+- 内部 Admin MVP（最低优先级、不进入普通用户流程）：总览、用户、行程、AI Provider、系统状态和审计日志；核心用户链路稳定后再实现。
 
 ### 10.4 Could Have
 
@@ -404,6 +452,12 @@ Travel Energy 是与偏好和预算同等重要的核心能力。TripMind 不把
 | `/invite/:token` | 分享链接打开的行程邀请摘要与成员身份 | 加入同一行程 |
 | `/trips/:tripId/replan` | 事件输入、方案对比、标准 Experience Diff | 触发事件、比较、批准新版本 |
 | `/trips/:tripId/budget` | 总预算、分类预算、预计花费和适配状态 | 调整预算、比较方案、请求重新规划 |
+| `/admin` | 内部运营总览：用户/行程数量、错误和系统状态 | 查看概况、进入管理页（仅管理员） |
+| `/admin/users` | 用户搜索、账号状态和基础信息 | 可恢复地停用/恢复账号（仅管理员） |
+| `/admin/trips` | 行程状态、版本、邀请和异常 | 可恢复地归档/恢复行程、撤销邀请（仅管理员） |
+| `/admin/providers` | 预配置 AI Provider、模型、启用状态、默认/备用顺序和最近错误 | 启用/停用、选择默认/备用、测试连接、切换 fixture（仅管理员） |
+| `/admin/system` | Provider、数据库和 fixture 模式健康状态 | 查看状态和错误，不显示 secret |
+| `/admin/audit-logs` | 管理员操作记录 | 按操作者、动作和目标筛选（仅管理员） |
 
 ### 11.2 关键组件
 
@@ -411,9 +465,9 @@ AI 规划首页 Chatbox、建议提示词、缺失信息提示、生成进度、
 
 ### 11.3 推荐技术架构
 
-本项目选择 **mobile-first Web App/PWA**，采用一个 **Next.js + TypeScript** 项目同时承载页面、Route Handlers、Agent 编排和领域逻辑；样式使用 **Tailwind CSS**，只在需要时引入少量 **shadcn/ui** 组件。身份认证和持久化使用 **Supabase Auth + Postgres**，LLM 使用 **OpenAI Responses API**，Web App 部署到 **Vercel**。MVP 不拆分独立 Express 后端，不引入 Prisma、Firebase、Redis、生产 Docker 或微服务。
+本项目选择 **mobile-first Web App/PWA**，采用一个 **Next.js + TypeScript** 项目同时承载页面、Route Handlers、Agent 编排和领域逻辑；样式使用 **Tailwind CSS**，只在需要时引入少量 **shadcn/ui** 组件。身份认证和持久化使用 **Supabase Auth + Postgres**，AI 通过可替换的 `AIProvider` 接口接入，Web App 部署到 **Vercel**。Admin 也是同一项目中的内部次要功能，不单独建应用、Express 后端或微服务；不引入 Prisma、Firebase、Redis、生产 Docker 或其他微服务。
 
-TripMind Agent、validator、成员权限、邀请 token、正式 `TripState`、正式行程版本和第三方 API key 全部运行在服务器端。Supabase Postgres 是协作旅行的唯一事实来源；浏览器不直接调用 OpenAI 或第三方 provider，也不能持有 service role/secret key。Next.js Route Handlers 继续提供第 13 章定义的 API；地图和实时数据通过 adapter 接入，默认 fixture 模式。
+TripMind Agent、validator、成员权限、邀请 token、正式 `TripState`、正式行程版本和第三方 API key 全部运行在服务器端。Supabase Postgres 是协作旅行的唯一事实来源；浏览器不直接调用 AI 或其他第三方 provider，也不能持有 service role/secret key。Next.js Route Handlers 继续提供第 13 章定义的 API；AI、地图、地点、路线和实时数据通过 adapter 接入，默认 fixture 模式。Admin 页面只展示服务端允许的摘要，不提供直接改数据库或查看/编辑 secret 的入口。
 
 PWA 的 MVP 边界分两层：Must Have 包含 mobile-first 响应式布局、Web App Manifest、应用名称/图标/theme、`start_url`、`display: standalone`、HTTPS 部署、添加到主屏幕、手机/桌面浏览器可用、刷新后从 Supabase 恢复数据，以及邀请链接直达正确行程；Should Have 包含 service worker、静态 app shell 缓存、离线 fallback 页面和恢复网络后的重新拉取。MVP 不做离线编辑行程、background sync、push notification，也不在 service worker 缓存私密偏好、预算、健康限制或已认证 API 响应。
 
@@ -432,18 +486,36 @@ app/
   trips/[tripId]/replan/page.tsx
   trips/[tripId]/budget/page.tsx
   invite/[token]/page.tsx
+  admin/page.tsx
+  admin/users/page.tsx
+  admin/trips/page.tsx
+  admin/providers/page.tsx
+  admin/system/page.tsx
+  admin/audit-logs/page.tsx
   api/conversations/.../route.ts
   api/trips/.../route.ts
+  api/admin/.../route.ts
 components/
   ui/
   chat/
   itinerary/
 src/
   agent/
+    scope/
   domain/
   validators/
   contracts/
+    scope.ts
   integrations/
+    ai/
+      AIProvider.ts
+      ProviderRegistry.ts
+      adapters/
+        openai.ts
+        gemini.ts
+        claude.ts
+        lunamax.ts
+        fixture.ts
   lib/supabase/
 supabase/
   migrations/
@@ -455,18 +527,20 @@ public/
 tests/
 ```
 
-架构原则：浏览器页面只发送用户动作并展示服务端返回的状态；Route Handlers 验证 Supabase session 和旅行成员权限后调用领域服务；领域服务通过 adapter 读取外部数据；Agent 只调用领域工具；所有外部数据记录来源与缓存时间；行程变更采用版本而非覆盖。
+架构原则：浏览器页面只发送用户动作并展示服务端返回的状态；Route Handlers 验证 Supabase session 后先执行 `Business Scope Guard`，只有业务范围内的请求才能进入 Agent；已有旅行请求还需验证成员权限。Admin Route Handlers 另外验证受控 `AdminUser` 身份；领域服务通过 adapter 读取外部数据；Agent 只调用当前 intent 允许的最小领域工具集合；所有外部数据记录来源与缓存时间；行程变更采用版本而非覆盖。
 
 ### 11.4 区块职责与 Data Flow
 
-系统分为以下六个区块，各区块只负责自己的数据：
+系统分为以下八个区块，各区块只负责自己的数据：
 
 - **Web/PWA UI 区块**：AI 规划首页、完整对话、我的行程、独立行程页，以及 Plan/Harmony/Energy/Budget/Replan 等次要页面；负责收集操作和展示状态。
 - **Next.js 应用层区块**：Server Components、Client Components、Route Handlers 和 session middleware；负责导航、表单状态、身份会话、错误处理和调用应用服务。
+- **Business Scope Guard 区块**：在 Agent 前后执行结构化范围判断、混合请求裁剪和输出范围检查；越界请求不得进入 Agent、调用工具或修改旅行状态。
 - **TripMind Agent 区块**：Orchestrator、Requirement Clarifier、Itinerary Planner 和 Change Planner；负责理解语言、决定追问、调用工具、生成行程或变更提案，不直接写数据库或决定成员权限。
 - **领域服务区块**：Constraint Validator、版本服务、成员/邀请服务，以及 Harmony、Energy、Budget、Replan、Serendipity 服务；负责确定性计算和状态规则。
-- **Supabase 状态与持久层区块**：Auth、Postgres、RLS，以及 `AgentConversation`、`AgentMessage`、`Trip`、`Member`、`TripInvite`、`ItineraryVersion`、`ItineraryItem` 和 `TripEvent`；保存身份、事实、版本和审计记录。
-- **外部数据区块**：OpenAI Responses API、Places、Directions、Weather provider 或本地 fixture；只通过服务器端 adapter 提供带来源和更新时间的数据。
+- **Supabase 状态与持久层区块**：Auth、Postgres、RLS，以及 `AgentConversation`、`AgentMessage`、`Trip`、`Member`、`TripInvite`、`ItineraryVersion`、`ItineraryItem`、`TripEvent`、`AdminUser` 和 `AdminAuditLog`；保存身份、事实、版本和审计记录。
+- **外部数据区块**：AI Provider、Places、Directions、Weather provider 或本地 fixture；只通过服务器端 adapter 提供带来源和更新时间的数据。
+- **内部 Admin 区块**：同一 Next.js 项目中的 `/admin` 页面和 Admin API；只读系统摘要并执行可恢复的管理动作，不直接暴露数据库或 secret。
 
 ```mermaid
 flowchart TD
@@ -474,7 +548,10 @@ flowchart TD
     PWA --> PAGE[Next.js 页面]
     PAGE --> API[Route Handler / Server Action]
     API --> AUTH[Supabase Auth Session]
-    AUTH --> HAS_TRIP{请求是否关联已有 Trip}
+    AUTH --> SCOPE{Business Scope Guard}
+    SCOPE -- 越界 / 危险 / 未知 --> REFUSE[固定拒绝并引导回旅行规划]
+    REFUSE --> PAGE
+    SCOPE -- 允许 / 混合请求 --> HAS_TRIP{请求是否关联已有 Trip}
     HAS_TRIP -- 否，首次规划 --> AGENT[TripMind Agent]
     HAS_TRIP -- 是 --> PERM{Trip 成员权限通过}
     PERM -- 否 --> DENY[返回未授权或登录提示]
@@ -510,6 +587,13 @@ flowchart TD
     MEMBER --> PROFILE[(Member / PreferenceProfile)]
     PROFILE --> DB
 
+    ADMIN[Admin 页面] --> ADMINAPI[Admin Route Handler]
+    ADMINAPI --> ADMINAUTH{最新 Auth 身份 + AdminUser 检查}
+    ADMINAUTH -- 否 --> DENY
+    ADMINAUTH -- 是 --> ADMINDB[(Admin 数据/Trip 数据)]
+    ADMINAPI --> AUDIT[(AdminAuditLog)]
+    ADMINAPI --> PROVIDERCFG[Provider Registry 配置]
+
     ITINERARY --> OPTIONAL[次要增强功能]
     OPTIONAL --> HARMONY[Group Harmony]
     OPTIONAL --> ENERGY[Travel Energy]
@@ -523,12 +607,14 @@ flowchart TD
     DISCOVER --> ITINERARY
 ```
 
-核心数据流分为四条：
+核心数据流包括以下链路：
 
-1. **首次生成**：用户消息 → Next.js 页面 → Route Handler → Agent 提取字段 → 更新 `ConversationState` → 缺少必要信息则追问；信息齐全则调用 provider/fixture 和 validator → 在 Supabase 创建 `Trip`、首个 `ItineraryVersion` → 跳转独立行程 URL。刷新或重新打开时按当前 session 从 Supabase 恢复。
-2. **行程修改**：用户修改要求 + 当前 `TripState` + 当前 `ItineraryVersion` → Agent 生成变更预览 → 用户确认 → validator → 保存新的 `ItineraryVersion` 和 `TripEvent` → 页面重新读取正式状态。旧版本不被覆盖。
-3. **成员邀请**：创建者 → Invite API → `TripInvite` → 受邀者通过分享 URL 加入 → 创建 `Member` / `PreferenceProfile` → 更新 `TripState`。邀请 token、过期、撤销和角色权限完全由应用 API、成员领域服务和数据库策略处理，不交给 LLM。
-4. **次要增强**：已有 `TripState` + 当前行程版本 → Harmony/Energy/Budget/Replan/Serendipity → 候选方案或 Experience Diff → validator 与必要审批 → 新版本。`Surprise Me` 只返回建议，用户接受后才写入行程。
+1. **范围控制**：用户消息 → Route Handler → `Business Scope Guard` → 越界/危险/未知则固定拒绝且不调用工具、不修改状态；允许或混合请求只把 `allowedRequest` 交给 Agent；Agent 输出还需通过输出范围检查。
+2. **首次生成**：范围检查后的旅行请求 → Agent 提取字段 → 更新 `ConversationState` → 缺少必要信息则追问；信息齐全则调用 provider/fixture 和 validator → 在 Supabase 创建 `Trip`、首个 `ItineraryVersion` → 跳转独立行程 URL。刷新或重新打开时按当前 session 从 Supabase 恢复。
+3. **行程修改**：用户修改要求 + 当前 `TripState` + 当前 `ItineraryVersion` → 范围与权限检查 → Agent 生成变更预览 → 用户确认 → validator → 保存新的 `ItineraryVersion` 和 `TripEvent` → 页面重新读取正式状态。旧版本不被覆盖。
+4. **成员邀请**：创建者 → Invite API → `TripInvite` → 受邀者通过分享 URL 加入 → 创建 `Member` / `PreferenceProfile` → 更新 `TripState`。邀请 token、过期、撤销和角色权限完全由应用 API、成员领域服务和数据库策略处理，不交给 LLM。
+5. **次要增强**：已有 `TripState` + 当前行程版本 → Harmony/Energy/Budget/Replan/Serendipity → 候选方案或 Experience Diff → validator 与必要审批 → 新版本。`Surprise Me` 只返回建议，用户接受后才写入行程。
+6. **内部管理**：管理员 → `/admin` → Admin API 重新验证身份 → 读取摘要或执行停用/恢复、归档/恢复、撤销邀请、Provider 配置动作 → 写入 `AdminAuditLog`；普通用户在页面和 API 两层都被拒绝。
 
 状态所有权固定为：
 
@@ -543,7 +629,7 @@ flowchart TD
 | 实体 | 关键字段 | 关系/用途 |
 | --- | --- | --- |
 | `AgentConversation` | id, ownerId, tripId?, state, missingRequiredFields, status, createdAt, updatedAt | Chatbox 会话、补问状态与生成结果关联 |
-| `AgentMessage` | id, conversationId, tripId?, actor, intent, toolCalls, response, createdAt | 对话记录、解释和审计 |
+| `AgentMessage` | id, conversationId, tripId?, actor, scopeStatus, intent, reasonCode, promptVersion, hasToolCalls, toolCallsRedacted, response, createdAt | 对话记录、解释和最小化范围审计；不保存无必要的私密原文或完整越界内容 |
 | `Trip` | id, name, origin, destination, start/end, currency, budget, status, ownerId | 根旅行状态；默认可为单人 |
 | `Member` | id, tripId, userId, name, role, privacy, status, energyLevel, maxWalkingKm, consecutiveActivityLimit, earlyStartLimit, lateEndLimit, restPreference | 参与者、Supabase Auth 身份关联、权限和体力边界；创建者自动成为首位成员 |
 | `TripInvite` | id, tripId, tokenHash, role, expiresAt, revokedAt, createdBy | 可撤销、有过期时间的邀请链接 |
@@ -559,17 +645,20 @@ flowchart TD
 | `Vote` | id, tripId, targetId, options, responses, deadline, status | 冲突决策 |
 | `BudgetPlan` | tripId, currency, totalLimit, categoryLimits, estimatedTotal, estimatedRemaining, memberFitStatus, updatedAt | 行程预算约束与预计成本快照 |
 | `TripEvent` | tripId, type, payload, actor, createdAt | 状态变更日志/撤销依据 |
+| `AdminUser` | userId, role, active, createdAt, updatedAt | 受控管理员名单；只关联 Supabase Auth user，不从用户可修改的 `user_metadata` 读取权限 |
+| `AdminAuditLog` | id, adminUserId, action, targetType, targetId, reason, result, metadataRedacted, createdAt | 每次 Admin API 访问或写操作的追踪记录；不保存 secret |
+| `AIProviderConfig` | providerId, displayName, model, enabled, isDefault, fallbackRank, fixtureMode, lastHealthStatus, lastErrorAt | 预配置 Provider 的非敏感配置；不保存或返回 API key |
 
 所有实体使用 UUID；预算金额用整数最小货币单位或 Decimal，禁止用浮点数直接累计；时间统一存 UTC 并按旅行目的地显示。
 
-Supabase Postgres 是上述正式数据的唯一持久层。所有暴露 schema 中的表都必须启用 RLS，并同时配置明确的 grants 和 policies：`Trip.ownerId` 对应创建者，成员只能读取自己已加入的旅行；写入权限按 owner/member 角色和具体动作收窄。`PreferenceProfile` 默认仅本人可读写，Agent 需要的受控聚合通过服务器端路径完成。授权判断不能依赖用户可自行修改的 `user_metadata`；service role/secret key 只存在服务器环境，浏览器只使用允许公开的 Supabase URL 和 publishable key。若使用 view，必须配置 `security_invoker` 以遵守底层 RLS；更新策略同时定义 `USING`、`WITH CHECK` 和所需 `SELECT` 权限。
+Supabase Postgres 是上述正式数据的唯一持久层。所有暴露 schema 中的表都必须启用 RLS，并同时配置明确的 grants 和 policies：`Trip.ownerId` 对应创建者，成员只能读取自己已加入的旅行；写入权限按 owner/member 角色和具体动作收窄。`PreferenceProfile` 默认仅本人可读写，Agent 需要的受控聚合通过服务器端路径完成。`AdminUser`、`AdminAuditLog` 和 `AIProviderConfig` 优先放在不暴露给 Data API 的 `private` schema，并撤销 `anon` / `authenticated` 的直接权限；只能由验证过管理员身份的服务器端 Admin API 访问。授权判断不能依赖用户可自行修改的 `user_metadata`，而应查询受控 `AdminUser` 并结合最新 Auth 身份；Next.js SSR 保护页/API 使用 `getClaims`，需要最新用户资料时使用 `getUser`，不能把 `getSession` 返回的 user 当成最新权限依据。service role/secret key 只存在服务器环境，浏览器只使用允许公开的 Supabase URL 和 publishable key；service role 绕过 RLS，仅可用于服务器端且仍需先做 Admin 检查。若新表未自动暴露 Data API，按项目设置显式配置所需 grants；若使用 view，必须配置 `security_invoker` 以遵守底层 RLS；更新策略同时定义 `USING`、`WITH CHECK` 和所需 `SELECT` 权限。
 
 ## 13. API 与集成策略
 
 ### 13.1 内部 API
 
 - `POST /api/conversations`：创建 AI 规划会话。
-- `POST /api/conversations/:id/messages`：发送消息，更新结构化需求并返回追问、生成状态或修改提案。
+- `POST /api/conversations/:id/messages`：发送消息；服务器先返回/记录 `ScopeDecision`。仅当 `status=allowed` 且 `intent!=unknown` 时更新结构化需求并返回追问、生成状态或修改提案；越界时返回固定引导且 `stateChanged=false`、`toolCalls=[]`。
 - `POST /api/conversations/:id/generate`：必要信息齐全后创建旅行和首版行程；缺失时返回 `missingRequiredFields`。
 - `GET /api/itineraries`：读取用户创建或加入的行程。
 - `POST /api/trips`：创建旅行。
@@ -591,18 +680,33 @@ Supabase Postgres 是上述正式数据的唯一持久层。所有暴露 schema 
 - `PUT /api/trips/:id/budget`：设置总预算与分类预算约束。
 - `GET /api/trips/:id/budget`：读取预计花费、剩余预算和成员适配状态。
 - `POST /api/trips/:id/budget/replan`：在新预算约束内生成候选行程。
+- `GET /api/admin/overview`：读取 Admin 总览摘要。
+- `GET /api/admin/users`：搜索用户和账号状态；`POST /api/admin/users/:id/status`：可恢复地停用/恢复账号。
+- `GET /api/admin/trips`：搜索行程；`POST /api/admin/trips/:id/archive`：可恢复地归档/恢复行程。
+- `POST /api/admin/invites/:id/revoke`：撤销邀请，不删除历史记录。
+- `GET /api/admin/providers`：读取非敏感 Provider 配置；`POST /api/admin/providers/:id/toggle`：启用/停用；`POST /api/admin/providers/:id/test`：测试连接；`POST /api/admin/providers/select`：设置默认/备用或 fixture。
+- `GET /api/admin/system/health`：读取系统、Provider 和数据库健康摘要。
+- `GET /api/admin/audit-logs`：读取 Admin 审计记录。
 
 所有写 API 进行成员权限校验、幂等键校验和事件记录，错误返回用户可读的 `code/message/details`。成员邀请、token、加入、撤销和角色变更只由应用 API 与成员领域服务处理；Agent 可以解释协作状态，但不能直接授予权限。
 
-这些契约由 Next.js Route Handlers 实现。每个请求先验证 Supabase Auth cookie session，再验证 Trip owner/member 权限；浏览器不能绕过应用层直接执行 Agent、OpenAI、权限授予或第三方 provider 调用。共享 request/response schema 放在 `src/contracts`，页面和服务器共同引用，避免组员各自复制类型。
+这些契约由 Next.js Route Handlers 实现。普通旅行 API 每个请求先验证 Supabase Auth cookie session，再验证 Trip owner/member 权限；Admin API 每个请求都在服务器使用 `getClaims`/必要时 `getUser` 获取最新身份，并查询启用中的 `AdminUser`，不能信任 `user_metadata` 或只靠隐藏按钮。所有 Admin API 请求都记录访问/操作审计；停用/恢复、归档/恢复和撤销邀请等写操作还必须记录目标、原因、结果和时间。上述动作使用状态字段保留可恢复历史，不提供永久删除或直接改数据库。浏览器不能绕过应用层直接执行 Agent、权限授予或第三方 provider 调用。共享 request/response schema 放在 `src/contracts`，页面和服务器共同引用，避免组员各自复制类型。
 
 ### 13.2 外部适配器
 
-- **LLM**：OpenAI Responses API；使用 JSON Schema 约束 `TripStatePatch`、`ItineraryProposal` 和 `ReplanProposal`。
+- **AI**：通过统一 `AIProvider` 调用文本生成、结构化输出和可选工具调用；使用 strict JSON Schema 约束 `ScopeDecision`、`TripStatePatch`、`ItineraryProposal` 和 `ReplanProposal`，不把任何一家厂商的 SDK 类型带入 Agent、schema 或 validator。
 - **地图/地点/路线**：Mapbox 或同类服务；先实现 `PlacesProvider`、`DirectionsProvider` 接口和本地 fixture。
 - **天气**：天气 provider 可选；MVP 用天气事件 fixture。
 
 集成顺序是 fixture → 单个真实地点/地图或天气 provider → 更多 provider。所有 provider 需要超时、缓存、限流、重试和 fallback；API key 只放环境变量，不能进入仓库。活动价格只作为规划估算并标注来源与查询时间，产品不提供库存或交易能力。
+
+### 13.3 可替换 AI Provider 架构
+
+- `AIProvider` 是业务唯一依赖的接口，至少约定 `generateStructured()`、`streamText()`（可选）、`healthCheck()`、能力声明和统一错误格式；输入输出使用项目自己的 contracts。
+- `ProviderRegistry` 根据服务器端配置返回当前可用 Provider，维护启用状态、默认 Provider、备用顺序、fixture 模式和超时/重试策略。Agent、`TripState`、schema、validator、Harmony/Energy/Replan 不直接引用厂商 SDK。
+- Provider adapter 必须支持按 intent 传入允许工具子集；不支持原生 allowed-tools 的 Provider 由服务器端编排层只注册该轮允许工具。任何 Provider 都不得获得通用搜索、代码执行、任意 URL、邮件、支付或数据库直写工具。
+- `adapters/` 可提供 `openai`、`gemini`、`claude`、`lunamax`、`fixture` 等可插拔示例；这些是替换点，不承诺 MVP 同时实现所有 adapter。MVP 只需接通一个真实 Provider，fixture 必须可在无 key 或网络失败时完成核心演示。
+- `/admin/providers` 只管理预配置 Provider 的启用/停用、默认/备用顺序、连接测试、最近错误和 fixture 开关；页面不显示、不编辑、不回传 API key。每个 key 使用独立服务器环境变量，不能进入数据库、日志、客户端 bundle 或 service worker。
 
 ## 14. 比赛规则与合规策略
 
@@ -662,17 +766,21 @@ Supabase Postgres 是上述正式数据的唯一持久层。所有暴露 schema 
 - 建立 production build、Vercel Preview/Production、Shared Dev/Production Supabase、`.env.example`、健康检查和 provider/dependency register；明确 keyless fixture fallback。
 - 建立 README 的 AI 边界、第三方归属/许可证和原创性证据章节，记录初始 commit；建立语义化 HTML、键盘焦点、屏幕阅读器冒烟、字体缩放、触控目标和表单错误的无障碍检查清单。
 - 建立 `ConversationState`、`TripState`、错误码、fixture provider、页面路由、邀请 URL、Web App Manifest 和 PWA 图标。
+- 建立 `ScopeDecision` contract、固定拒绝文案、`Business Scope Guard`、输入/输出范围 schema、reason code 和最小化审计字段；默认不确定即拒绝。
+- 建立 `AIProvider`/`ProviderRegistry` 合同、一个 fixture adapter 和一个真实 Provider adapter 的替换点；不在此阶段承诺接通所有厂商。
 - 建立 `supabase/migrations`、`supabase/seed.sql`、RLS/grants/policies、`src/contracts`、Node 22 版本文件和 lockfile；组员按相同 migration 与 seed 启动开发环境。
 
 ### Phase 1：AI Chatbox 与首版行程（1 天，最高优先级）
 
 - 实现首页 Chatbox、会话记录、示例提示词和加载/错误状态。
+- 在 Conversation API 与 Agent 之间接入 `Business Scope Guard`：越界请求直接返回固定引导，混合请求只传递 `allowedRequest`，输出发送前再次检查范围。
 - 实现自然语言字段提取、`missingRequiredFields`、目的地与日期/天数追问，以及“你决定”的默认值规则。
+- 按 `ScopeDecision.intent` 提供最小 TripMind 工具集合，并确保 TripMind 帮助意图没有任何写工具。
 - 实现结构化行程生成、基础 validator 和自动保存。
 - 完成独立行程页面、按天时间线、Supabase 持久化、浏览器刷新/重新打开恢复和行程列表。
 - 支持在行程页面继续聊天修改、显示变更预览并保存新版本。
 
-完成标志：完全没有计划的用户无需创建 Plan，就能完成“模糊输入 → AI 补问 → 生成 → 保存 → 对话修改”。
+完成标志：完全没有计划的用户无需创建 Plan，就能完成“模糊输入 → 范围检查 → AI 补问 → 生成 → 保存 → 对话修改”；代码、作业、新闻等越界请求在 Agent 前被拦截且不调用工具、不修改状态。
 
 ### Phase 2：个人与协作输入（0.5–1 天）
 
@@ -711,14 +819,19 @@ Supabase Postgres 是上述正式数据的唯一持久层。所有暴露 schema 
 - 优化 mobile-first 关键页面、加载反馈、软键盘、焦点/屏幕阅读器标签、浏览器返回行为和 Agent 解释文案。
 - 完成 Manifest、图标、`display: standalone` 和 HTTPS 部署；若时间允许加入 service worker、静态 app shell 和离线 fallback。不得缓存私密或已认证 API 响应。
 - 在手机和桌面浏览器检查打开、主屏安装、standalone 启动、核心流程、邀请 URL、刷新恢复、无 key 和网络失败；同时检查 Vercel/Supabase 部署和健康状态，准备部署 URL、commit SHA、备用录屏/截图和无 key fallback。
+- 在核心用户流程稳定后再实现内部 Admin MVP：`/admin`、`/admin/users`、`/admin/trips`、`/admin/providers`、`/admin/system`、`/admin/audit-logs`，以及对应 Admin API、RLS/grants、`AdminUser` 和 `AdminAuditLog`；验证普通用户无法访问，管理动作可恢复且可审计。
 - 完成依赖/许可证/归属清单、AI walkthrough、Git 提交历史和原创性自查；确认 secret 不出现在仓库、日志、构建产物和演示素材中。
 
-优先级顺序：**AI Chatbox 补问与生成 > 独立行程页与修改 > 单人/邀请成员 > 约束校验 > 突发重排 > Group Harmony > Travel Energy > 预算规划 > Serendipity**。后续能力保留并继续实施，但不得挤占最短闭环的质量。
+优先级顺序：**Business Scope Guard > AI Chatbox 补问与生成 > 独立行程页与修改 > 单人/邀请成员 > 约束校验 > 突发重排 > Group Harmony > Travel Energy > 预算规划 > Serendipity**。Admin 是内部次要功能，不改变以上用户功能优先级；只有核心链路稳定后才投入 Admin，不能挤占最短闭环质量。
 
 ## 16. 验收标准
 
 ### 16.1 功能验收
 
+- “规划槟城三天行程”“降低第二天步行量”“检查预算”“暴雨重排”“邀请成员”和“怎样使用 TripMind”等请求通过范围检查并进入对应旅行流程。
+- 写代码、做数学题、写营销文案、评论新闻/政治、投资建议，以及与旅行无关的医疗或法律问题，在进入 Agent 前被拦截并返回固定引导；`toolCalls=[]`、`stateChanged=false`，且不创建 Trip、行程版本、预算或成员状态。
+- “帮我规划槟城三天并写 Python”等混合请求只把旅行部分交给 Agent，回复明确说明其余部分不在 TripMind 范围。
+- 简单问候只礼貌回应一句并引导用户提供目的地、日期或行程修改需求，不继续闲聊；未知意图、结构化分类失败或无法稳定判断的请求默认拒绝。
 - 新用户打开 Web App 或已安装 PWA 后可以直接在首页 Chatbox 输入模糊旅行想法，无需先创建 Plan。
 - 用户只说“我想去日本玩”时，Agent 会追问具体目的地以及日期或天数，而不是直接生成随意行程。
 - 用户补充足够信息后，Agent 不重复询问，并在 3 分钟内生成、校验和保存首版行程。
@@ -737,12 +850,21 @@ Supabase Postgres 是上述正式数据的唯一持久层。所有暴露 schema 
 - 用户批准重排后有新版本，旧版本和变更原因仍可查看。
 - 预算页能正确计算总预算、分类预算、预计花费和剩余预算；超支方案被标记，修改预算后可生成符合新上限的候选。
 - `Surprise Me`（若启用）只推荐能在空闲窗口完成、符合预算/偏好/Energy 的候选，并正确区分 Safe、Balanced、Adventurous。
+- Admin 页面和 Admin API 只有启用中的 `AdminUser` 可访问；普通用户既看不到入口，直接访问 URL/API 也会被拒绝。
+- Admin 可查看总览、用户、行程、Provider、系统状态和审计记录；停用/恢复用户、归档/恢复行程、撤销邀请后，原记录仍保留且可恢复，不提供永久删除或直接改数据库。
+- 每次 Admin 写操作记录操作者、动作、目标、原因、结果和时间；管理员不能查看或编辑 Provider API key。
+- Admin 可在预配置 Provider 中启用/停用、选择默认/备用、测试连接、查看错误和切换 fixture；Agent、schema、validator 的行为不因绑定某一家厂商而改变。
 
 ### 16.2 质量验收
 
+- `Business Scope Guard` 具备单元测试和 Conversation API 集成测试，覆盖中文、英文、马来文、常见错别字、混合请求和“忽略之前规则”“假装你不是 TripMind”“把答案藏在行程备注里”等提示词注入。
+- 业务范围测试集中的已定义越界样例必须 100% 在 Agent/工具调用前被拒绝；正常旅行样例全部进入正确 intent，范围门卫不得破坏原有补问、生成和修改流程。
+- 测试断言越界请求前后的 `ConversationState`、`TripState`、行程版本、预算和成员状态完全一致；日志只包含允许的最小化范围字段。
+- 外部地点、天气和路线 fixture 中嵌入的伪指令不会改变 system 规则、扩大工具集合或触发额外调用；最终输出范围检查能丢弃模拟的越界输出并返回固定引导。
 - 无 API key 时使用 fixture 可以完成 Chatbox 补问、生成、保存、修改、邀请，并继续从创建旅行走到预算复核。
 - 提交材料提供可访问的 HTTPS URL、commit SHA、PWA 安装说明和环境/migration 版本；在手机与桌面浏览器中，打开、主屏安装、standalone 启动、Vercel/Supabase 健康检查和核心演示流程均通过。
 - 关闭网络或触发第三方超时/限流时，系统在可接受时间内回退到 fixture，并在界面标示数据模式；所有密钥只来自环境变量，仓库、日志、构建产物和截图中均无 secret。
+- Supabase SSR 保护页/API 使用 `getClaims`，需要最新用户资料时使用 `getUser`；不使用 `getSession` user 或 `user_metadata` 做 Admin 授权，RLS、grants、service role 服务器边界和新表 Data API 暴露设置均有检查记录。
 - validator、预算计算和重排影响分析有自动化测试。
 - 页面在目标手机和桌面尺寸、字体缩放和横竖屏下可操作；加载、空状态、超时和无结果状态有反馈。
 - 核心页面通过适度 Web 无障碍冒烟：语义化 HTML、键盘焦点、屏幕阅读器、触控目标、输入法与浏览器返回、表单标签/错误提示、基本对比度和非颜色唯一表达；不要求完整 WCAG 审计。
@@ -780,6 +902,7 @@ Supabase Postgres 是上述正式数据的唯一持久层。所有暴露 schema 
 | 风险 | 影响 | 应对 |
 | --- | --- | --- |
 | LLM 生成闭馆、超时或超预算活动 | 失去可信度 | 结构化输出 + validator 门禁 + fixture 数据 |
+| 用户或外部数据诱导 Agent 偏离 TripMind 业务 | 变成通用助手、越权调用或污染状态 | Agent 前后范围检查、strict schema、按 intent 缩小工具、外部文本不可信、提示词注入测试；不确定时默认拒绝 |
 | 实时 API key、限流或网络失败 | Demo 中断 | provider adapter、缓存、超时、fixture fallback |
 | 成员冲突无法自动解决 | 群组体验差 | 私密偏好、权重、拆分活动、投票和人工审批 |
 | 重排破坏用户固定安排 | 信任风险 | 锁定状态、版本化、固定安排受影响时必须人工确认 |
@@ -793,6 +916,8 @@ Supabase Postgres 是上述正式数据的唯一持久层。所有暴露 schema 
 | 团队无法解释 AI 关键决策 | 评审不信任或无法维护 | 固定 LLM/确定性逻辑边界，工具白名单和 validator 门禁；完成 TripState、Harmony/Energy/Replan walkthrough |
 | 键盘、屏幕阅读器、字体缩放或浏览器返回受阻 | 质量验收失败 | 语义化 HTML、清晰焦点、合理触控目标、表单错误、对比度和非颜色表达；手机/桌面浏览器做无障碍冒烟 |
 | 黑客松时间不足 | 功能不完整 | 先完成单目的地 fixture 的端到端故事线，后接真实 API |
+| Admin 权限配置错误或管理动作误伤 | 越权或运营数据受损 | 服务器用最新 Auth 身份查询受控 `AdminUser`；RLS/grants + Admin API 双重校验；只做可恢复状态变更并写审计 |
+| Provider 厂商绑定或单一 Provider 故障 | 更换模型成本高、Demo 中断 | `AIProvider` + `ProviderRegistry` + adapter；MVP 接一个真实 Provider，同时保留 fixture fallback |
 
 ## 19. 明确不做（本次 MVP）
 
@@ -803,6 +928,9 @@ Supabase Postgres 是上述正式数据的唯一持久层。所有暴露 schema 
 - 不做复杂多目的地全球最优求解、实时定位和自动读取所有群聊历史。
 - 不将成员精确预算、饮食/健康限制等私密信息默认公开给全组。
 - 不把 LLM 作为金额计算、时间可行性或权限判断的唯一来源。
+- 不把 TripMind 做成通用聊天、编程、作业、新闻、政治、写作、投资、医疗或法律助手；模型具备的通用知识不等于产品允许回答的范围。
+- 不做独立 Admin 应用/微服务、复杂 RBAC 编辑器、财务/客服后台或任意 SQL/直接数据库编辑；Admin 只提供本计划列出的最小只读摘要和可恢复管理动作。
+- 不提供用户/行程的永久删除；不在 Admin 页面显示或编辑 AI Provider API key，也不承诺 MVP 同时接入 OpenAI、Gemini、Claude、LunaMax 等所有 adapter。
 - 不开发 Android/iOS 原生 App、平板专用原生界面、Wear OS 或其他原生平台；本次只交付响应式 Web App/PWA。
 - 不把 TripMind Agent、正式协作状态、成员权限或服务器端密钥放入浏览器 bundle/service worker；不依赖只能在开发机本地运行的服务，也不接入只有付费层、没有可用 trial/free tier 的外部服务。
 - 不做离线行程编辑、background sync、push notification 或完整离线同步；不在 service worker 缓存私密偏好、预算、健康限制或已认证 API 响应。
@@ -811,6 +939,6 @@ Supabase Postgres 是上述正式数据的唯一持久层。所有暴露 schema 
 
 ## 20. 完成定义
 
-当一名完全没有计划的新用户可以通过 HTTPS 打开 TripMind Web App 或从手机主屏启动 PWA，从首页 Chatbox 开始，在 Agent 对目的地、日期/天数等必要信息进行少量追问后，得到一份已保存且可通过稳定 URL 重新打开的行程，并能在行程页面继续对话修改；同时该行程默认可单人完整使用，也能之后邀请成员，而且整个过程不需要先创建或填写原有 Plan，即视为核心 MVP 完成。
+当一名完全没有计划的新用户可以通过 HTTPS 打开 TripMind Web App 或从手机主屏启动 PWA，从首页 Chatbox 开始，在 `Business Scope Guard` 允许后由 Agent 对目的地、日期/天数等必要信息进行少量追问，得到一份已保存且可通过稳定 URL 重新打开的行程，并能在行程页面继续对话修改；同时该行程默认可单人完整使用，也能之后邀请成员，而且整个过程不需要先创建或填写原有 Plan，即视为核心 MVP 完成。与此同时，定义的越界、混合和提示词注入测试必须通过，越界请求不得调用 Agent 工具或改变任何旅行状态。
 
-原计划增强能力的完成标准继续保留：评委还能完成“加载预设 → Harmony 优化 → Energy 优化 → 触发暴雨 → 查看 Experience Diff 并审批重排 → 调整预算并获得新方案”，且可选 `Surprise Me` 遵守窗口/预算/偏好/Energy 约束、页面能解释每次 TripMind Agent 决策、硬约束无违规、无外部 API key 或网络失败也不中断。整体完成定义还要求：PWA manifest/主屏安装、Vercel/Supabase 部署与健康检查结果已记录；migrations、RLS 和团队环境同步已验证；服务器环境变量和 keyless fallback 已验证；第三方 provider/dependency register、来源/许可证/归属清单和黑客松期间 Git 提交证据齐全；团队能解释 LLM 与确定性逻辑边界及 Chatbox 澄清、Harmony/Energy/Replan 关键算法；核心页面通过语义化 HTML、键盘焦点、屏幕阅读器、字体缩放、触控目标、非颜色表达、表单错误、浏览器返回、刷新恢复和 standalone 启动冒烟检查。
+原计划增强能力的完成标准继续保留：评委还能完成“加载预设 → Harmony 优化 → Energy 优化 → 触发暴雨 → 查看 Experience Diff 并审批重排 → 调整预算并获得新方案”，且可选 `Surprise Me` 遵守窗口/预算/偏好/Energy 约束、页面能解释每次 TripMind Agent 决策、硬约束无违规、无外部 API key 或网络失败也不中断。整体完成定义还要求：PWA manifest/主屏安装、Vercel/Supabase 部署与健康检查结果已记录；migrations、RLS 和团队环境同步已验证；服务器环境变量和 keyless fallback 已验证；第三方 provider/dependency register、来源/许可证/归属清单和黑客松期间 Git 提交证据齐全；团队能解释 LLM 与确定性逻辑边界及 Chatbox 澄清、Harmony/Energy/Replan 关键算法；核心页面通过语义化 HTML、键盘焦点、屏幕阅读器、字体缩放、触控目标、非颜色表达、表单错误、浏览器返回、刷新恢复和 standalone 启动冒烟检查。若已投入 Admin，则还需验证 `/admin` 六个页面、普通用户拒绝、AdminUser 受控授权、可恢复管理动作、审计记录和 Provider key 不暴露；这些不应反向改变核心用户流程优先级。
