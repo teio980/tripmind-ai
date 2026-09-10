@@ -9,7 +9,6 @@ import {
   Check,
   ChevronRight,
   CircleHelp,
-  Compass,
   LayoutList,
   RotateCcw,
   Scale,
@@ -57,7 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className={`top-nav ${isHome ? "top-nav-home" : ""}`}>
         <div className="top-nav-inner">
           <Link className="brand" href="/" aria-label="TripMind home">
-            <span className="brand-mark"><Compass size={20} strokeWidth={2.4} /></span>
+            <span className="brand-mark"><img src="/tripmind-mark.svg" alt="" width="34" height="34" /></span>
             <span className="brand-word">TripMind</span>
           </Link>
 

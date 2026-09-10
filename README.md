@@ -3,6 +3,10 @@
 > Don’t just plan the trip. Protect the experience.
 
 <p align="center">
+  <img src="./public/tripmind-logo.svg" alt="TripMind logo" width="250" />
+</p>
+
+<p align="center">
   <img src="./public/tripmind-product-flow.gif" alt="TripMind product flow shown inside a phone: Chatbox, itinerary, Harmony, Energy, rain replanning, and budget approval" width="820" />
 </p>
 
@@ -510,7 +514,9 @@ tripmind-ai/
 │  ├─ demo-data.ts                     # Demo Fixture, budgets, metrics, and options
 │  └─ trip-store.tsx                   # Trip state, drafts, and version operations
 ├─ public/
-│  └─ icon.svg                         # Application icon
+│  ├─ tripmind-logo.svg                # Full TripMind logo lockup
+│  ├─ tripmind-mark.svg                # Reusable logo mark
+│  └─ icon.svg                         # PWA application icon
 ├─ scripts/
 │  └─ create-readme-phone-animation.py # Regenerate the README product-flow GIF
 ├─ docx/
