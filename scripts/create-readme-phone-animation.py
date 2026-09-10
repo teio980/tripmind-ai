@@ -143,8 +143,10 @@ def draw_home(draw: ImageDraw.ImageDraw, sx, sy, progress):
     label(draw, (sx + 30, sy + 232), "Tell TripMind what you're thinking", 12, INK, True)
     rounded(draw, (sx + 28, sy + 253, sx + 232, sy + 295), 10, (250, 252, 251), TEAL, 1)
     label(draw, (sx + 39, sy + 274), "I want to travel...", 10, INK_SOFT, False, "lm")
-    rounded(draw, (sx + 203, sy + 258, sx + 232, sy + 290), 8, TEAL)
-    label(draw, (sx + 217, sy + 274), "↑", 14, SURFACE, True, "mm")
+    # Keep the send control visually inside the input, with the same breathing
+    # room used by the browser Demo's Chatbox.
+    rounded(draw, (sx + 208, sy + 262, sx + 227, sy + 286), 7, TEAL)
+    label(draw, (sx + 217, sy + 274), "↑", 11, SURFACE, True, "mm")
     pill(draw, (sx + 29, sy + 307), "Agent ready", TEAL_100, TEAL, 8, 7, 4)
     label(draw, (sx + 30, sy + 356), "No Plan required first", 8, INK_SOFT, True)
     label(draw, (sx + 30, sy + 372), "Fixed arrangements stay protected", 8, INK_SOFT, True)
