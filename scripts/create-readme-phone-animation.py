@@ -267,8 +267,8 @@ def draw_budget(draw: ImageDraw.ImageDraw, sx, sy, progress):
     label(draw, (sx + 29, sy + 189), "RM 4,800", 26, INK, True)
     label(draw, (sx + 170, sy + 184), "Remaining", 7, MUTED, True)
     label(draw, (sx + 170, sy + 202), f"RM {440 - int(40 * progress)}", 13, TEAL, True)
-    rounded(draw, (sx + 29, sy + 216, sx + 232, sy + 222), 3, (234, 240, 236))
-    rounded(draw, (sx + 29, sy + 216, sx + 29 + int(182 * (0.91 + progress * 0.01)), sy + 222), 3, TEAL)
+    rounded(draw, (sx + 29, sy + 224, sx + 232, sy + 230), 3, (234, 240, 236))
+    rounded(draw, (sx + 29, sy + 224, sx + 29 + int(182 * (0.91 + progress * 0.01)), sy + 230), 3, TEAL)
     categories = [("Stay", "RM 1,800", TEAL), ("Food", "RM 1,040", BLUE), ("Transport", "RM 540", AMBER), ("Activities", "RM 980", CORAL)]
     for index, (name, amount, color) in enumerate(categories):
         x = sx + 15 + (index % 2) * 117
