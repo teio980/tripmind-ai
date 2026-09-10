@@ -109,15 +109,14 @@ def draw_phone_shell(draw: ImageDraw.ImageDraw):
 def draw_mobile_topbar(draw: ImageDraw.ImageDraw, sx, sy, title="TripMind"):
     compass(draw, sx + 23, sy + 25, 0.72)
     label(draw, (sx + 45, sy + 25), title, 15, INK, True, "lm")
-    draw.ellipse((sx + 240, sy + 21, sx + 244, sy + 25), fill=TEAL)
-    draw.ellipse((sx + 249, sy + 21, sx + 253, sy + 25), fill=LINE)
-    line(draw, [(sx + 15, sy + 48), (sx + 265, sy + 48)], LINE, 1)
+    draw.ellipse((sx + 230, sy + 21, sx + 234, sy + 25), fill=TEAL)
+    line(draw, [(sx + 15, sy + 48), (sx + 235, sy + 48)], LINE, 1)
 
 
 def draw_mobile_bottom(draw: ImageDraw.ImageDraw, sx, sy, active="Itinerary"):
     by = sy + 433
-    line(draw, [(sx + 15, by), (sx + 265, by)], LINE, 1)
-    items = [("Itinerary", sx + 35), ("Harmony", sx + 100), ("Budget", sx + 165), ("Replan", sx + 230)]
+    line(draw, [(sx + 15, by), (sx + 235, by)], LINE, 1)
+    items = [("Itinerary", sx + 30), ("Harmony", sx + 90), ("Budget", sx + 150), ("Replan", sx + 210)]
     for item, x in items:
         is_active = item == active
         if is_active:
@@ -129,7 +128,7 @@ def draw_mobile_bottom(draw: ImageDraw.ImageDraw, sx, sy, active="Itinerary"):
 
 def draw_home(draw: ImageDraw.ImageDraw, sx, sy, progress):
     draw_mobile_topbar(draw, sx, sy)
-    rounded(draw, (sx + 15, sy + 60, sx + 265, sy + 178), 20, (239, 250, 246))
+    rounded(draw, (sx + 15, sy + 60, sx + 235, sy + 178), 20, (239, 250, 246))
     label(draw, (sx + 30, sy + 78), "TRIPMIND AI TRAVEL PLANNER", 7, TEAL, True)
     label(draw, (sx + 30, sy + 100), "Tell me where", 20, INK, True)
     label(draw, (sx + 30, sy + 123), "you want to go.", 20, TEAL, True)
@@ -139,13 +138,13 @@ def draw_home(draw: ImageDraw.ImageDraw, sx, sy, progress):
     dot = int((progress * (len(points) - 1)) % (len(points) - 1))
     x, y = points[dot]
     draw.ellipse((x - 5, y - 5, x + 5, y + 5), fill=AMBER, outline=SURFACE, width=2)
-    rounded(draw, (sx + 15, sy + 193, sx + 265, sy + 335), 18, SURFACE, LINE, 1)
+    rounded(draw, (sx + 15, sy + 193, sx + 235, sy + 335), 18, SURFACE, LINE, 1)
     label(draw, (sx + 30, sy + 212), "START HERE", 7, MUTED, True)
     label(draw, (sx + 30, sy + 232), "Tell TripMind what you're thinking", 12, INK, True)
-    rounded(draw, (sx + 28, sy + 253, sx + 252, sy + 295), 10, (250, 252, 251), TEAL, 1)
+    rounded(draw, (sx + 28, sy + 253, sx + 232, sy + 295), 10, (250, 252, 251), TEAL, 1)
     label(draw, (sx + 39, sy + 274), "I want to travel...", 10, INK_SOFT, False, "lm")
-    rounded(draw, (sx + 218, sy + 258, sx + 247, sy + 290), 8, TEAL)
-    label(draw, (sx + 232, sy + 274), "↑", 14, SURFACE, True, "mm")
+    rounded(draw, (sx + 203, sy + 258, sx + 232, sy + 290), 8, TEAL)
+    label(draw, (sx + 217, sy + 274), "↑", 14, SURFACE, True, "mm")
     pill(draw, (sx + 29, sy + 307), "Agent ready", TEAL_100, TEAL, 8, 7, 4)
     label(draw, (sx + 30, sy + 356), "No Plan required first", 8, INK_SOFT, True)
     label(draw, (sx + 30, sy + 372), "Fixed arrangements stay protected", 8, INK_SOFT, True)
@@ -154,18 +153,18 @@ def draw_home(draw: ImageDraw.ImageDraw, sx, sy, progress):
 
 def draw_itinerary(draw: ImageDraw.ImageDraw, sx, sy, progress):
     draw_mobile_topbar(draw, sx, sy)
-    rounded(draw, (sx + 15, sy + 60, sx + 265, sy + 123), 17, (242, 250, 247), LINE, 1)
+    rounded(draw, (sx + 15, sy + 60, sx + 235, sy + 123), 17, (242, 250, 247), LINE, 1)
     label(draw, (sx + 29, sy + 76), "TRP-PEN-2403", 7, MUTED, True)
     label(draw, (sx + 29, sy + 95), "Penang Food & Culture", 13, INK, True)
     pill(draw, (sx + 187, sy + 75), "Saved", TEAL_100, TEAL, 8, 6, 4)
-    rounded(draw, (sx + 15, sy + 137, sx + 265, sy + 179), 12, SURFACE, LINE, 1)
+    rounded(draw, (sx + 15, sy + 137, sx + 235, sy + 179), 12, SURFACE, LINE, 1)
     pill(draw, (sx + 23, sy + 145), "Itinerary", TEAL_100, TEAL, 8, 6, 4)
     label(draw, (sx + 96, sy + 158), "Harmony 72%", 8, MUTED, True, "lm")
     label(draw, (sx + 179, sy + 158), "Energy", 8, MUTED, True, "lm")
     label(draw, (sx + 29, sy + 204), "CURRENT FORMAL VERSION", 7, MUTED, True)
     label(draw, (sx + 29, sy + 222), "Version 1", 16, INK, True)
-    pill(draw, (sx + 163, sy + 207), "Hard constraints passed", TEAL_100, TEAL, 7, 6, 4)
-    rounded(draw, (sx + 15, sy + 242, sx + 265, sy + 402), 17, SURFACE, LINE, 1)
+    pill(draw, (sx + 141, sy + 207), "Hard constraints passed", TEAL_100, TEAL, 6, 5, 3)
+    rounded(draw, (sx + 15, sy + 242, sx + 235, sy + 402), 17, SURFACE, LINE, 1)
     label(draw, (sx + 29, sy + 260), "01  Day 1", 11, INK, True)
     label(draw, (sx + 29, sy + 278), "Arrival & George Town culture", 8, MUTED, False)
     activities = [("10:00", "Arrive at Penang Airport", TEAL), ("12:00", "George Town old-town lunch", TEAL), ("14:00", "Mural & neighborhood walk", BLUE), ("18:30", "Rest block", AMBER)]
@@ -175,25 +174,25 @@ def draw_itinerary(draw: ImageDraw.ImageDraw, sx, sy, progress):
         draw.ellipse((sx + 69, y - 3, sx + 77, y + 5), fill=color)
         line(draw, [(sx + 73, y + 5), (sx + 73, y + 20)], LINE, 1)
         label(draw, (sx + 86, y), title, 8, INK_SOFT, index == int(progress * 4) % 4)
-    rounded(draw, (sx + 15, sy + 410, sx + 265, sy + 423), 7, TEAL_100)
+    rounded(draw, (sx + 15, sy + 410, sx + 235, sy + 423), 7, TEAL_100)
     draw_mobile_bottom(draw, sx, sy, "Itinerary")
 
 
 def draw_harmony(draw: ImageDraw.ImageDraw, sx, sy, progress):
     draw_mobile_topbar(draw, sx, sy)
-    rounded(draw, (sx + 15, sy + 60, sx + 265, sy + 180), 20, (239, 248, 250))
+    rounded(draw, (sx + 15, sy + 60, sx + 235, sy + 180), 20, (239, 248, 250))
     label(draw, (sx + 30, sy + 79), "GROUP HARMONY", 7, BLUE, True)
     label(draw, (sx + 30, sy + 102), "A rhythm everyone", 17, INK, True)
     label(draw, (sx + 30, sy + 123), "can accept.", 17, TEAL, True)
     label(draw, (sx + 30, sy + 149), "Protect the least-satisfied traveler.", 8, INK_SOFT)
-    rounded(draw, (sx + 15, sy + 195, sx + 265, sy + 300), 17, SURFACE, LINE, 1)
+    rounded(draw, (sx + 15, sy + 195, sx + 235, sy + 300), 17, SURFACE, LINE, 1)
     label(draw, (sx + 29, sy + 214), "OVERALL HARMONY", 7, MUTED, True)
-    label(draw, (sx + 30, sy + 250), "72%", 29, INK, True)
-    label(draw, (sx + 94, sy + 250), "→", 20, TEAL, True)
+    label(draw, (sx + 30, sy + 238), "72%", 27, INK, True)
+    label(draw, (sx + 92, sy + 238), "→", 18, TEAL, True)
     next_score = 72 + int(19 * progress)
-    label(draw, (sx + 123, sy + 250), f"{next_score}%", 29, TEAL, True)
-    pill(draw, (sx + 30, sy + 270), "Candidate estimate", BLUE_100, BLUE, 8, 6, 4)
-    rounded(draw, (sx + 15, sy + 315, sx + 265, sy + 402), 17, SURFACE, LINE, 1)
+    label(draw, (sx + 119, sy + 238), f"{next_score}%", 27, TEAL, True)
+    label(draw, (sx + 235, sy + 218), "Candidate estimate", 7, BLUE, True, "ra")
+    rounded(draw, (sx + 15, sy + 315, sx + 235, sy + 402), 17, SURFACE, LINE, 1)
     label(draw, (sx + 29, sy + 334), "MEMBER SATISFACTION", 7, MUTED, True)
     members = [("Alex", 92, TEAL), ("Jamie", 84, BLUE), ("Sam", 64, AMBER), ("Taylor", 78, (126, 104, 170))]
     for index, (name, score, color) in enumerate(members):
@@ -207,19 +206,18 @@ def draw_harmony(draw: ImageDraw.ImageDraw, sx, sy, progress):
 
 def draw_energy(draw: ImageDraw.ImageDraw, sx, sy, progress):
     draw_mobile_topbar(draw, sx, sy)
-    rounded(draw, (sx + 15, sy + 60, sx + 265, sy + 153), 20, (242, 247, 252))
+    rounded(draw, (sx + 15, sy + 60, sx + 235, sy + 153), 20, (242, 247, 252))
     label(draw, (sx + 30, sy + 79), "TRAVEL ENERGY · DAY 2", 7, BLUE, True)
-    label(draw, (sx + 30, sy + 102), "Leave room", 19, INK, True)
-    label(draw, (sx + 30, sy + 124), "for energy.", 19, BLUE, True)
-    label(draw, (sx + 30, sy + 141), "Lower the load, keep the experience.", 7, INK_SOFT)
-    rounded(draw, (sx + 15, sy + 169, sx + 265, sy + 280), 17, SURFACE, LINE, 1)
+    label(draw, (sx + 30, sy + 100), "Leave room", 17, INK, True)
+    label(draw, (sx + 30, sy + 120), "for energy.", 17, BLUE, True)
+    rounded(draw, (sx + 15, sy + 169, sx + 235, sy + 280), 17, SURFACE, LINE, 1)
     label(draw, (sx + 29, sy + 188), "WALKING", 7, MUTED, True)
     walking = 8.4 - 3.8 * progress
-    label(draw, (sx + 29, sy + 232), f"{walking:.1f} km", 29, INK, True)
-    label(draw, (sx + 154, sy + 232), "→", 18, TEAL, True)
-    label(draw, (sx + 181, sy + 232), "4.6", 24, TEAL, True)
-    label(draw, (sx + 224, sy + 232), "km", 8, TEAL, True, "lm")
-    pill(draw, (sx + 29, sy + 250), "Comfort target ≤5.0 km", TEAL_100, TEAL, 7, 6, 4)
+    label(draw, (sx + 29, sy + 214), f"{walking:.1f} km", 27, INK, True)
+    label(draw, (sx + 150, sy + 214), "→", 17, TEAL, True)
+    label(draw, (sx + 178, sy + 214), "4.6", 23, TEAL, True)
+    label(draw, (sx + 220, sy + 214), "km", 8, TEAL, True, "lm")
+    label(draw, (sx + 235, sy + 188), "Comfort target ≤5.0 km", 7, TEAL, True, "ra")
     metrics = [("Rest blocks", "0", "1", TEAL), ("Fatigue risk", "High", "Medium", AMBER), ("Transfers", "5", "3", BLUE)]
     for index, (name, before, after, color) in enumerate(metrics):
         y = sy + 304 + index * 33
@@ -227,13 +225,13 @@ def draw_energy(draw: ImageDraw.ImageDraw, sx, sy, progress):
         label(draw, (sx + 143, y), before, 8, MUTED, False)
         label(draw, (sx + 170, y), "→", 9, color, True)
         label(draw, (sx + 197, y), after, 8, INK_SOFT, True)
-        line(draw, [(sx + 29, y + 15), (sx + 240, y + 15)], LINE, 1)
+        line(draw, [(sx + 29, y + 15), (sx + 230, y + 15)], LINE, 1)
     draw_mobile_bottom(draw, sx, sy, "Energy")
 
 
 def draw_replan(draw: ImageDraw.ImageDraw, sx, sy, progress):
     draw_mobile_topbar(draw, sx, sy)
-    rounded(draw, (sx + 15, sy + 60, sx + 265, sy + 151), 20, (255, 245, 241))
+    rounded(draw, (sx + 15, sy + 60, sx + 235, sy + 151), 20, (255, 245, 241))
     label(draw, (sx + 30, sy + 78), "DISRUPTION REPLANNER", 7, CORAL, True)
     label(draw, (sx + 30, sy + 101), "Heavy rain affected", 15, INK, True)
     label(draw, (sx + 30, sy + 122), "Day 2 afternoon.", 15, CORAL, True)
@@ -244,7 +242,7 @@ def draw_replan(draw: ImageDraw.ImageDraw, sx, sy, progress):
     for index, (name, cost, color, recommended) in enumerate(options):
         y = sy + 194 + index * 55
         fill = TEAL_50 if index == active else SURFACE
-        rounded(draw, (sx + 15, y, sx + 265, y + 45), 13, fill, color if index == active else LINE, 1)
+        rounded(draw, (sx + 15, y, sx + 235, y + 45), 13, fill, color if index == active else LINE, 1)
         draw.ellipse((sx + 28, y + 16, sx + 37, y + 25), outline=color, width=2)
         if index == active:
             draw.ellipse((sx + 31, y + 19, sx + 34, y + 22), fill=color)
@@ -252,7 +250,7 @@ def draw_replan(draw: ImageDraw.ImageDraw, sx, sy, progress):
         label(draw, (sx + 207, y + 17), cost, 8, color, True, "rm")
         if recommended:
             pill(draw, (sx + 48, y + 27), "Recommended", TEAL_100, TEAL, 6, 5, 3)
-    rounded(draw, (sx + 15, sy + 373, sx + 265, sy + 407), 12, LOCKED_100)
+    rounded(draw, (sx + 15, sy + 373, sx + 235, sy + 407), 12, LOCKED_100)
     label(draw, (sx + 29, sy + 390), "✓  Locked dinner: no impact", 8, LOCKED, True, "lm")
     draw_mobile_bottom(draw, sx, sy, "Replan")
 
@@ -262,22 +260,22 @@ def draw_budget(draw: ImageDraw.ImageDraw, sx, sy, progress):
     label(draw, (sx + 29, sy + 70), "BUDGET & VERSION CONTROL", 7, TEAL, True)
     label(draw, (sx + 29, sy + 91), "Review before", 18, INK, True)
     label(draw, (sx + 29, sy + 112), "you approve.", 18, TEAL, True)
-    rounded(draw, (sx + 15, sy + 135, sx + 265, sy + 235), 17, SURFACE, LINE, 1)
+    rounded(draw, (sx + 15, sy + 135, sx + 235, sy + 235), 17, SURFACE, LINE, 1)
     label(draw, (sx + 29, sy + 154), "TOTAL TRIP BUDGET", 7, MUTED, True)
     label(draw, (sx + 29, sy + 189), "RM 4,800", 26, INK, True)
     label(draw, (sx + 170, sy + 184), "Remaining", 7, MUTED, True)
     label(draw, (sx + 170, sy + 202), f"RM {440 - int(40 * progress)}", 13, TEAL, True)
-    rounded(draw, (sx + 29, sy + 216, sx + 251, sy + 222), 3, (234, 240, 236))
+    rounded(draw, (sx + 29, sy + 216, sx + 232, sy + 222), 3, (234, 240, 236))
     rounded(draw, (sx + 29, sy + 216, sx + 29 + int(182 * (0.91 + progress * 0.01)), sy + 222), 3, TEAL)
     categories = [("Stay", "RM 1,800", TEAL), ("Food", "RM 1,040", BLUE), ("Transport", "RM 540", AMBER), ("Activities", "RM 980", CORAL)]
     for index, (name, amount, color) in enumerate(categories):
-        x = sx + 15 + (index % 2) * 128
+        x = sx + 15 + (index % 2) * 117
         y = sy + 252 + (index // 2) * 49
-        rounded(draw, (x, y, x + 116, y + 39), 11, SURFACE, LINE, 1)
+        rounded(draw, (x, y, x + 101, y + 39), 11, SURFACE, LINE, 1)
         draw.ellipse((x + 10, y + 11, x + 18, y + 19), fill=color)
         label(draw, (x + 25, y + 12), name, 7, MUTED, True, "lm")
         label(draw, (x + 25, y + 28), amount, 8, INK_SOFT, True, "lm")
-    rounded(draw, (sx + 15, sy + 355, sx + 265, sy + 405), 15, TEAL_50, TEAL, 1)
+    rounded(draw, (sx + 15, sy + 355, sx + 235, sy + 405), 15, TEAL_50, TEAL, 1)
     label(draw, (sx + 29, sy + 373), "Pending draft", 8, TEAL, True)
     label(draw, (sx + 29, sy + 390), "Version 1 → Version 2", 9, INK, True)
     pill(draw, (sx + 182, sy + 367), "Approve", TEAL, SURFACE, 8, 8, 5)
@@ -339,12 +337,10 @@ def main():
     for frame_index in range(FRAME_COUNT):
         stage = min(5, frame_index // STAGE_FRAMES)
         local = (frame_index % STAGE_FRAMES) / (STAGE_FRAMES - 1)
+        # Keep the phone frame and surrounding product principles stable. A clean
+        # stage cut is more legible than crossfading two different card layouts,
+        # which can make text and metrics appear to jump between screens.
         current = render(stage, local)
-        transition = frame_index % STAGE_FRAMES
-        if transition >= STAGE_FRAMES - 3 and stage < 5:
-            next_image = render(stage + 1, 0.0)
-            alpha = (transition - (STAGE_FRAMES - 3) + 1) / 3
-            current = Image.blend(current, next_image, alpha)
         frames.append(current.convert("P", palette=Image.Palette.ADAPTIVE, colors=128))
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     frames[0].save(OUTPUT, save_all=True, append_images=frames[1:], duration=1000 // FPS, loop=0, optimize=True, disposal=2)
