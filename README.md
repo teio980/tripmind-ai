@@ -2,6 +2,12 @@
 
 > Don’t just plan the trip. Protect the experience.
 
+<p align="center">
+  <img src="./public/tripmind-product-flow.gif" alt="TripMind product flow shown inside a phone: Chatbox, itinerary, Harmony, Energy, rain replanning, and budget approval" width="820" />
+</p>
+
+<p align="center"><em>From a rough travel idea to a protected, explainable, approvable itinerary.</em></p>
+
 TripMind is an explainable travel-planning product built around an AI Chatbox. People do not need to create a complex plan or complete a long form before they can begin. They can start with a rough idea, answer only the questions that matter, and receive a travel plan that can be adjusted, compared, approved, and shared.
 
 TripMind optimizes more than a list of places. It protects the parts of a trip that matter in real life: whether the group can accept the plan, whether every traveler can physically handle it, how much budget remains, which arrangements are fixed, and which experiences are worth keeping when circumstances change.
@@ -505,6 +511,8 @@ tripmind-ai/
 │  └─ trip-store.tsx                   # Trip state, drafts, and version operations
 ├─ public/
 │  └─ icon.svg                         # Application icon
+├─ scripts/
+│  └─ create-readme-phone-animation.py # Regenerate the README product-flow GIF
 ├─ docx/
 │  ├─ plan.md                          # Product implementation plan
 │  ├─ prototype-plan.md                # Prototype scope and acceptance criteria
@@ -551,6 +559,16 @@ npm run start
 | `npm run build` | Create an optimized production build |
 | `npm run start` | Start the production server |
 | `npm run typecheck` | Run the TypeScript compiler without emitting files |
+
+### Regenerate the README animation
+
+The README hero animation is generated from the current TripMind visual language and Demo content. To regenerate it after changing the product flow:
+
+```bash
+python scripts/create-readme-phone-animation.py
+```
+
+The generator requires Python and Pillow. It writes `public/tripmind-product-flow.gif`.
 
 ## Quick Acceptance Checklist
 
