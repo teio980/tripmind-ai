@@ -114,7 +114,9 @@ def draw_mobile_topbar(draw: ImageDraw.ImageDraw, sx, sy, title="TripMind"):
 
 
 def draw_mobile_bottom(draw: ImageDraw.ImageDraw, sx, sy, active="Itinerary"):
-    by = sy + 433
+    # Keep the navigation rail closer to the bottom of the phone viewport while
+    # leaving a small breathing room below its labels.
+    by = sy + 466
     line(draw, [(sx + 15, by), (sx + 235, by)], LINE, 1)
     items = [("Itinerary", sx + 30), ("Harmony", sx + 90), ("Budget", sx + 150), ("Replan", sx + 210)]
     for item, x in items:
