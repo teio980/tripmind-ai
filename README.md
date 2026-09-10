@@ -204,7 +204,6 @@ The difference is not simply a larger feature list. TripMind treats a trip as an
 | Adapt / Replanner | Kept | A disruption should not force the group to rebuild a whole day. | The rain flow repairs the affected window only, validates time and buffers, and keeps locked arrangements intact. |
 | Experience Diff | Kept | Users need to see the consequence of a change before they accept it. | Pending drafts compare cost, Harmony, minimum satisfaction, walking, risk, retained experiences, and fixed-arrangement impact. |
 | Deterministic Fixture fallback | Kept | The core workflow must be demonstrable without API keys, accounts, network access, or unreliable live data. | A fixed Penang Fixture and browser-local state drive a repeatable end-to-end walkthrough; all such values are labeled as Demo data or estimates. |
-| Booking, payment, and transactions | Dropped | Transaction handling adds supplier, payment, refund, and compliance obligations outside the planning thesis. | The Agent cannot purchase tickets or rooms; the prototype has no booking or payment integration. |
 
 ## Agent Scope and Safety
 
@@ -427,11 +426,11 @@ The trip area uses desktop top navigation and a mobile bottom navigation. The UI
 
 TripMind stores the current formal itinerary separately from pending candidates:
 
-1. The first itinerary that passes hard-constraint validation is saved as formal `Version 1`.
+1. The five-stage generation flow presents the first itinerary as having passed the Demo hard-constraint contract and saves formal `Version 1`.
 2. An edit, Harmony optimization, Energy optimization, or Replan starts as a `Pending draft` based on the current version.
 3. The draft records `baseVersion`, its reason, creation time, and expiration time.
-4. At approval time, the system reads the current formal version again and revalidates the proposal.
-5. If validation passes, it creates `currentVersion + 1` and preserves older history.
+4. At approval time, the current prototype checks that the draft still targets the current version and has not expired.
+5. A valid prototype draft creates `currentVersion + 1` and preserves older history. A production validator would perform the full time, route, budget, member, and locked-item checks at this point.
 6. If the formal version changed or the draft expired, the draft cannot be approved and must be regenerated.
 7. Canceling a draft, skipping an enhancement, or closing a preview does not change formal metrics or the version number.
 
@@ -468,7 +467,27 @@ After reset, return to the home page and load the Penang Demo again.
 
 ## AI, Deterministic Logic, and Data Flow
 
-TripMind separates AI responsibilities from rule-based system responsibilities:
+TripMind separates language understanding from deterministic state and domain logic. The product plan describes a server-side Agent architecture, while this repository implements a browser-local prototype with deterministic demo data.
+
+### Current prototype data flow
+
+```text
+User message
+   ↓
+Home / Chat UI
+   ↓
+TripProvider (React Context)
+   ├─ Keyword-based requirement extraction
+   ├─ Demo Fixture and fixed candidate data
+   ├─ Draft, approval, and version transitions
+   └─ Harmony / Energy / Budget / Replan presentation state
+          ↓
+Browser localStorage
+```
+
+The current prototype does not call an LLM. The Chatbox experience is represented by deterministic keyword extraction for destinations, trip length, interests, and pace, plus a staged generation flow. The current scope check is a client-side keyword guard, not the server-side `Business Scope Guard` described in the product plan.
+
+### Planned production boundary
 
 ```text
 User message
@@ -492,19 +511,44 @@ Deterministic domain logic
 Formal itinerary or pending draft
 ```
 
+In the planned architecture, the LLM is responsible for understanding intent, asking for missing requirements, coordinating domain tools, and explaining trade-offs. It must not calculate authoritative amounts, decide permissions, directly write a database, or silently overwrite a locked arrangement.
+
+| Logic | Planned responsibility | Current implementation boundary |
+| --- | --- | --- |
+| LLM / Agent | Understand travel intent, clarify requirements, orchestrate tools, and explain proposals | No live model call; the UI and keyword parser simulate the Agent flow |
+| Validator | Final gate for time, movement, buffers, opening hours, budget, member limits, and locked items | The generation screen presents this contract; approval currently checks draft freshness and expiry, but there is no reusable validator service yet |
+| Budget | Calculate total and category budgets, remaining headroom, and candidate deltas | Fixed Penang values, category limits, `sumBudget`, and option-specific costs in the Demo Fixture |
+| Harmony | Compare overall satisfaction, member satisfaction, and minimum-satisfaction protection | Fixed system estimates such as `72% → 91%`; approval updates the formal demo version |
+| Energy | Calculate walking, activity density, transfers, rest blocks, and fatigue risk | Fixed comparison such as `8.4 km → 4.6 km`, `0 → 1` rest blocks, and `High → Medium` |
+| Replan | Repair only the affected time window, preserve fixed arrangements, and create an Experience Diff | Fixed Day 2 rain event with three deterministic options and a protected 19:30 dinner |
+| Version and approval | Keep formal state separate from pending proposals and preserve history | Implemented through `PrototypeState`, `baseVersion`, 30-minute draft expiry, cancellation, approval, and version increments |
+
+### Core logic implemented by the team
+
+The repository's main team-authored implementation is the deterministic prototype loop:
+
+- `PrototypeState` and `TripProvider` manage cross-page state, hydration, normalization, persistence, and reset.
+- The Chatbox extracts known requirements and asks only for destination and duration before generation.
+- The five-step generation flow creates the first formal Version 1 from the fixed Fixture.
+- Pending drafts record their base version, reason, creation time, and expiration time.
+- Approval rejects stale or expired drafts, increments the current version, and preserves older history.
+- Harmony, Energy, Budget, and Replan use explicit Fixture data so the walkthrough is repeatable without keys or network access.
+- The UI communicates estimated values, pending approval, locked arrangements, and formal versions separately.
+
 In the complete product architecture, AI, place, map, routing, and weather providers are connected through adapters. The Agent, data contracts, validators, and business rules should not be coupled to one vendor. Real secrets should exist only in server environments, never in the browser bundle, logs, or repository.
 
 ## Technology Stack
 
-- **Next.js 15**: App Router, page routing, and the application shell.
-- **React 19**: Interactive screens and component state.
-- **TypeScript**: Type-safe data structures and application code.
-- **Lucide React**: Icon system.
+- **Next.js 15.5.25**: App Router, page routing, and the application shell.
+- **React 19.2.8**: Interactive screens and component state.
+- **TypeScript 5.9.3**: Type-safe data structures and application code.
+- **Lucide React 0.468.0**: Icon system.
 - **CSS**: Responsive layout, design tokens, timelines, cards, drawers, and state styling.
+- **React Context**: Cross-route prototype state management.
 - **Browser localStorage**: Local persistence for the current prototype.
 - **PWA manifest**: Standalone app configuration for home-screen installation.
 
-The current repository does not use Tailwind, a database, authentication, a live AI provider, a map API, or a weather API. These are future integration points for a production implementation.
+The installed versions above come from `package-lock.json`; `package.json` contains the compatible version ranges. The current repository does not use Tailwind, shadcn/ui, a database, authentication, a live AI provider, a map API, a weather API, or a service worker. These are future integration points or optional roadmap items for a production implementation.
 
 ## Project Structure
 
@@ -538,7 +582,7 @@ tripmind-ai/
 ├─ scripts/
 │  └─ create-readme-phone-animation.py # Regenerate the README product-flow GIF
 ├─ docx/
-│  ├─ plan.md                          # Product implementation plan
+│  ├─ plan.md                          # Product implementation plan (local planning file)
 │  ├─ prototype-plan.md                # Prototype scope and acceptance criteria
 │  └─ prototype.md                     # Screen, interaction, and visual specification
 ├─ dataflow.png                        # Product data-flow diagram
@@ -594,6 +638,28 @@ python scripts/create-readme-phone-animation.py
 
 The generator requires Python and Pillow. It writes `public/tripmind-product-flow.gif`.
 
+## Deployment and Verification
+
+The product plan targets a Vercel HTTPS deployment, but the current repository does not contain a recorded public deployment URL or a deployment-specific commit record. These fields should be filled from the actual deployment rather than inferred from the source repository.
+
+| Check | Current record |
+| --- | --- |
+| Source repository | [github.com/teio980/tripmind-ai](https://github.com/teio980/tripmind-ai) |
+| Deployment URL | Not recorded in this repository |
+| Deployed commit SHA | Not recorded in this repository |
+| Local Node.js | `v24.12.0` verified; project requirement is Node.js 22+ |
+| Local npm | `11.6.2` verified |
+| Type check | `npm run typecheck` |
+| Production build | `npm run build` |
+
+### PWA verification
+
+The repository provides a Web App Manifest with `start_url: "/"`, `display: "standalone"`, theme colors, and an SVG application icon. The prototype does not include a service worker, offline cache, background sync, or push notifications. PWA verification should therefore cover manifest loading, HTTPS access, add-to-home-screen behavior, standalone launch, and deep-link navigation, without claiming full offline support.
+
+### Browser verification
+
+Before release, record the browser and device used to verify the complete flow at approximately 390px mobile width and 1440px desktop width. The check should cover Chatbox clarification, generation, itinerary review, Harmony, Energy, rain replanning, Budget approval, refresh, browser back, direct child-route access, keyboard focus, and font scaling. Browser results are not recorded in this repository yet.
+
 ## Quick Acceptance Checklist
 
 After starting the app, verify the following flow:
@@ -646,14 +712,43 @@ This repository is a frontend interaction prototype that demonstrates the produc
 The following capabilities are not connected to live services yet:
 
 - A real LLM, server-side Agent, or persistent conversation memory.
+- A reusable server-side Business Scope Guard or deterministic validator service.
 - Real accounts, authentication, database persistence, or cross-device sync.
 - Live maps, places, routing, weather, or pricing APIs.
 - Booking, payment, ticketing, or accommodation transactions.
 - Real invitation joining, member permissions, or member feedback collection.
 - Live Discover / Surprise Me recommendations.
-- Full offline editing, background sync, or push notifications.
+- Full offline editing, service-worker caching, background sync, or push notifications.
 
 Routes, costs, weather, Harmony, Energy, and satisfaction values shown by the current prototype are for product and workflow demonstration only. They are not live travel advice, medical advice, or quotes.
+
+## Related Documentation
+
+The planning documents define the intended product boundary and acceptance language:
+
+- `docx/plan.md`: product implementation plan and long-term architecture.
+- `docx/prototype-plan.md`: eight-screen prototype scope, production sequence, and acceptance criteria.
+- `docx/prototype.md`: screen layout, interaction states, and visual specification.
+- `dataflow.png`: product data-flow diagram.
+
+In the current checkout, `docx/` is excluded by `.gitignore`, so these planning files are local reference material and are not guaranteed to be available in the public Git repository. If they need to be public submission artifacts, they should be committed or copied into a tracked documentation directory.
+
+## Third-Party Dependencies, Sources, and Licenses
+
+The following direct dependencies are used by the current prototype. Versions below are the installed versions recorded in `package-lock.json`.
+
+| Dependency | Version | Source | License |
+| --- | ---: | --- | --- |
+| Next.js | 15.5.25 | [Vercel Next.js](https://github.com/vercel/next.js) | MIT |
+| React | 19.2.8 | [React](https://github.com/facebook/react) | MIT |
+| React DOM | 19.2.8 | [React](https://github.com/facebook/react) | MIT |
+| Lucide React | 0.468.0 | [Lucide](https://github.com/lucide-icons/lucide) | ISC |
+| TypeScript | 5.9.3 | [TypeScript](https://github.com/microsoft/TypeScript) | Apache-2.0 |
+| `@types/node` | 22.20.1 | [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
+| `@types/react` | 19.2.18 | [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
+| `@types/react-dom` | 19.2.7 | [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
+
+The lockfile also records transitive packages. The README animation script additionally requires Python and Pillow; that optional script dependency is not pinned in the JavaScript lockfile and should be recorded separately if the animation is regenerated for a release. Wanderlog is a product reference used for comparison, not a runtime dependency.
 
 ## License
 
