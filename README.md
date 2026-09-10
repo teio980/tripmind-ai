@@ -174,19 +174,37 @@ First-time planning only requires the Chatbox, Requirement Clarifier, and Itiner
 
 ## Positioning and Differentiation
 
-TripMind can be understood alongside itinerary organization and collaboration products such as Wanderlog, but its focus is different. Traditional itinerary tools are useful for collecting places, organizing schedules, and sharing trip information. TripMind connects understanding, constraint validation, group trade-offs, disruption response, and approval into one explainable travel-state workflow.
+TripMind is positioned as an **explainable decision layer for a shared trip**, rather than only an itinerary organizer. It turns a rough request into a structured plan, makes group and physical-load trade-offs visible, and asks for approval before changing the formal plan.
 
-| Dimension | Common itinerary organization | TripMind focus |
+### Comparison with Wanderlog
+
+Wanderlog is a useful reference point because it already provides a broad trip-organizing toolkit: itineraries and maps, reservations, budgeting, route optimization, collaboration, mobile apps, offline access, and live flight updates. [Wanderlog’s product page](https://wanderlog.com/) describes those capabilities. The comparison below is intentionally about product focus. “TripMind” means this repository’s prototype, not a claim of production parity with Wanderlog.
+
+| Dimension | Wanderlog emphasis | TripMind differentiation |
 | --- | --- | --- |
-| Starting point | Create a plan first, then fill fields or search places | Say one sentence; the Agent asks for what is missing |
-| Group decisions | Collect opinions and leave the final trade-off to the organizer | Show consensus, conflict, member satisfaction, and minimum satisfaction |
-| Physical load | The user must manually judge whether the day is too tiring | Include walking, activity density, transfers, and rest in Energy |
-| Plan reliability | Primarily display places and scheduled times | Validate time, movement, buffers, budget, and locked arrangements |
-| Unexpected change | Manually edit several activities | Repair the affected window and preserve key arrangements |
-| Option comparison | Results and reasoning may be separated | Compare impact, cost, risk, walking, and retained experiences together |
-| Editing | Directly edit the current plan | Preview first, approve later, and keep older versions |
+| Starting point | Build and organize a trip with itinerary, map, reservations, and AI planning tools | Begin with one natural-language idea; the Chatbox asks only for the information that blocks a first itinerary |
+| Collaboration | Share and collaboratively edit a trip in real time | Model group satisfaction, conflicts, and the least-satisfied traveler so the organizer can explain a trade-off |
+| Physical load | Show time and distance between itinerary stops | Make walking, transfers, activity density, rest, comfort targets, and fatigue risk an explicit Energy decision |
+| Fixed arrangements | Store reservations and schedule details | Treat a user-locked arrangement as a constraint that every proposed optimization and replan must preserve and revalidate |
+| Disruptions | Offer live flight-status information alongside planning tools | Demonstrate a local rain replan that repairs only the affected window, protects fixtures, and presents alternatives; it is not a live weather service |
+| Comparing options | Organize the itinerary and its associated trip information | Use an **Experience Diff** to compare Harmony, minimum satisfaction, budget, walking, fatigue and weather risk, retained experiences, and fixed-arrangement impact in one review |
+| Applying changes | Collaborative changes can be made directly to the shared plan | Create a pending draft first; only an approved, validated draft becomes the next formal version |
+| Current delivery | Production web and native mobile product with live-service integrations | Browser-local, fixed-data interaction prototype; booking, native apps, live tracking, and full offline editing are deliberately out of scope |
 
-The difference is not simply a larger feature list. TripMind treats a trip as an explainable, collaborative, and approvable state object rather than a static checklist.
+The difference is not simply a larger feature list. TripMind treats a trip as an explainable, collaborative, and approvable state object rather than a static checklist. In particular, its product thesis is to protect group satisfaction, walking load, locked arrangements, and experience quality when a plan changes.
+
+
+## Product Decisions
+
+| Idea | Kept / Dropped | Reason | Resulting Change |
+| --- | --- | --- | --- |
+| Chatbox-first planning | Kept | A traveler should be able to begin with a rough idea instead of learning a long planning form. | The Chatbox extracts known details and asks only for the destination and date range or trip length needed to generate. |
+| Group Harmony | Kept | A group average can hide a traveler whose important need is being ignored. | The prototype surfaces shared preferences, conflicts, per-member satisfaction, and minimum-satisfaction protection before a Harmony draft is approved. |
+| Travel Energy | Kept | A route that fits on a map can still be too tiring in practice. | Energy compares walking, transfers, rest blocks, and fatigue risk with a lower-load candidate. |
+| Adapt / Replanner | Kept | A disruption should not force the group to rebuild a whole day. | The rain flow repairs the affected window only, validates time and buffers, and keeps locked arrangements intact. |
+| Experience Diff | Kept | Users need to see the consequence of a change before they accept it. | Pending drafts compare cost, Harmony, minimum satisfaction, walking, risk, retained experiences, and fixed-arrangement impact. |
+| Deterministic Fixture fallback | Kept | The core workflow must be demonstrable without API keys, accounts, network access, or unreliable live data. | A fixed Penang Fixture and browser-local state drive a repeatable end-to-end walkthrough; all such values are labeled as Demo data or estimates. |
+| Booking, payment, and transactions | Dropped | Transaction handling adds supplier, payment, refund, and compliance obligations outside the planning thesis. | The Agent cannot purchase tickets or rooms; the prototype has no booking or payment integration. |
 
 ## Agent Scope and Safety
 
