@@ -56,8 +56,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <header className={`top-nav ${isHome ? "top-nav-home" : ""}`}>
         <div className="top-nav-inner">
           <Link className="brand" href="/" aria-label="TripMind home">
-            <span className="brand-mark"><img src="/tripmind-mark.svg" alt="" width="34" height="34" /></span>
-            <span className="brand-word">TripMind</span>
+            <img className="brand-logo" src="/tripmind-logo.svg" alt="TripMind" width="144" height="36" />
           </Link>
 
           {isHome ? (
