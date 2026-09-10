@@ -637,13 +637,12 @@ The following capabilities are not connected to live services yet:
 
 Routes, costs, weather, Harmony, Energy, and satisfaction values shown by the current prototype are for product and workflow demonstration only. They are not live travel advice, medical advice, or quotes.
 
-## Related Documentation
-
-- [Product implementation plan](./docx/plan.md): positioning, users, MVP scope, data model, API strategy, and acceptance criteria.
-- [Prototype plan](./docx/prototype-plan.md): eight core screens, demo script, and prototype acceptance criteria.
-- [Prototype specification](./docx/prototype.md): screen structure, copy, interactions, and visual rules.
-- [Data-flow diagram](./dataflow.png): flow from user input through trip state and approval.
-
 ## License
 
-This repository does not currently include a separate open-source license. Add a license, third-party attribution, and data-source information before public distribution or reuse.
+The original source code and documentation in this repository are licensed under the [MIT License](https://opensource.org/license/mit).
+
+Copyright (c) 2026 TripMind
+
+The MIT License permits anyone to use, copy, modify, merge, publish, distribute, sublicense, and sell copies of the Software, provided that the copyright and permission notices are included in all copies or substantial portions of the Software. The Software is provided "as is", without warranty.
+
+The TripMind name, logo, and other brand identifiers are project branding and are not granted for trademark use by this license. Third-party dependencies, assets, fonts, and data remain under their respective licenses and may require separate attribution or permission before redistribution.
