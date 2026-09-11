@@ -91,6 +91,12 @@ TripMind does not silently overwrite the current itinerary. When a user asks to 
 
 Only approval turns the draft into the next formal version. Closing, canceling, or skipping a preview leaves the current itinerary unchanged.
 
+<p align="center">
+  <img src="./public/tripmind-experience-diff.gif" alt="Experience Diff animation showing a rain replan, candidate trade-offs, a preserved dinner, and approval" width="820" />
+</p>
+
+<p align="center"><em>Inspect the affected window, compare trade-offs, and approve a local replan.</em></p>
+
 ### 3. Group Harmony
 
 Harmony is more than one group score. It shows:
@@ -117,6 +123,12 @@ Travel Energy makes “will this be too tiring?” a visible planning discussion
 - Estimated fatigue risk.
 
 The itinerary page opens Energy as an in-context panel. Travelers can compare a baseline with a lower-load candidate before deciding whether to apply it. Walking and fatigue values are planning estimates, not medical advice.
+
+<p align="center">
+  <img src="./public/tripmind-harmony-energy.gif" alt="Harmony and Travel Energy animation showing satisfaction, walking, rest blocks, transfers, and fatigue-risk estimates" width="820" />
+</p>
+
+<p align="center"><em>Harmony protects the least-satisfied traveler while Energy makes physical load visible before approval.</em></p>
 
 ### 5. Constraint-aware itinerary planning
 
@@ -485,6 +497,12 @@ TripProvider (React Context)
 Browser localStorage
 ```
 
+<p align="center">
+  <img src="./public/tripmind-data-flow.gif" alt="Animated current prototype data flow from user message through Chat UI, TripProvider, deterministic logic, pending draft, and browser localStorage" width="820" />
+</p>
+
+<p align="center"><em>Current prototype flow: deterministic, browser-local, and separate from the planned production Agent boundary.</em></p>
+
 The current prototype does not call an LLM. The Chatbox experience is represented by deterministic keyword extraction for destinations, trip length, interests, and pace, plus a staged generation flow. The current scope check is a client-side keyword guard, not the server-side `Business Scope Guard` described in the product plan.
 
 ### Planned production boundary
@@ -578,9 +596,17 @@ tripmind-ai/
 ├─ public/
 │  ├─ tripmind-logo.svg                # Full TripMind logo lockup
 │  ├─ tripmind-mark.svg                # Reusable logo mark
-│  └─ icon.svg                         # PWA application icon
+│  ├─ icon.svg                         # PWA application icon
+│  ├─ tripmind-product-flow.gif        # README hero product-flow animation
+│  ├─ tripmind-experience-diff.gif     # README Experience Diff animation
+│  ├─ tripmind-harmony-energy.gif      # README Harmony + Energy animation
+│  └─ tripmind-data-flow.gif           # README current prototype data-flow animation
 ├─ scripts/
-│  └─ create-readme-phone-animation.py # Regenerate the README product-flow GIF
+│  ├─ create-readme-phone-animation.py  # Regenerate the README product-flow GIF
+│  ├─ create-readme-experience-diff.py  # Regenerate the Experience Diff GIF
+│  ├─ create-readme-harmony-energy.py   # Regenerate the Harmony + Energy GIF
+│  ├─ create-readme-data-flow.py        # Regenerate the current data-flow GIF
+│  └─ readme_animation_common.py        # Shared animation drawing helpers
 ├─ docx/
 │  ├─ plan.md                          # Product implementation plan (local planning file)
 │  ├─ prototype-plan.md                # Prototype scope and acceptance criteria
@@ -628,15 +654,18 @@ npm run start
 | `npm run start` | Start the production server |
 | `npm run typecheck` | Run the TypeScript compiler without emitting files |
 
-### Regenerate the README animation
+### Regenerate the README animations
 
-The README hero animation is generated from the current TripMind visual language and Demo content. To regenerate it after changing the product flow:
+The README animations are generated from the current TripMind visual language and Demo content. Regenerate the relevant asset after changing the corresponding product flow:
 
 ```bash
 python scripts/create-readme-phone-animation.py
+python scripts/create-readme-experience-diff.py
+python scripts/create-readme-harmony-energy.py
+python scripts/create-readme-data-flow.py
 ```
 
-The generator requires Python and Pillow. It writes `public/tripmind-product-flow.gif`.
+The generators require Python and Pillow. They write the four GIF assets under `public/`.
 
 ## Deployment and Verification
 
@@ -748,7 +777,7 @@ The following direct dependencies are used by the current prototype. Versions be
 | `@types/react` | 19.2.18 | [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
 | `@types/react-dom` | 19.2.7 | [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
 
-The lockfile also records transitive packages. The README animation script additionally requires Python and Pillow; that optional script dependency is not pinned in the JavaScript lockfile and should be recorded separately if the animation is regenerated for a release. Wanderlog is a product reference used for comparison, not a runtime dependency.
+The lockfile also records transitive packages. The README animation scripts additionally require Python and Pillow; that optional script dependency is not pinned in the JavaScript lockfile and should be recorded separately if the animations are regenerated for a release. Wanderlog is a product reference used for comparison, not a runtime dependency.
 
 ## License
 
