@@ -187,9 +187,9 @@ def draw_timeline(draw: ImageDraw.ImageDraw, stage: int, progress: float):
     label(draw, (x1 + 23, y1 + 23), "DAY 2 · TUESDAY", 8, MUTED, True)
 
     if stage == 0:
-        pill(draw, (x2 - 128, y1 + 16), "Version 1 · Formal", TEAL_100, TEAL, 8, 8, 4)
+        pill(draw, (x2 - 128, y1 + 16), "Current formal", TEAL_100, TEAL, 8, 8, 4)
     elif stage == 5:
-        pill(draw, (x2 - 129, y1 + 16), "Version 2 · Formal", TEAL_100, TEAL, 8, 8, 4)
+        pill(draw, (x2 - 129, y1 + 16), "Formal · Updated", TEAL_100, TEAL, 8, 8, 4)
     else:
         pill(draw, (x2 - 128, y1 + 16), "Pending draft", AMBER_100, AMBER, 8, 8, 4)
 
@@ -213,15 +213,16 @@ def draw_timeline(draw: ImageDraw.ImageDraw, stage: int, progress: float):
         draw.ellipse((x1 + 41, row_y - 8, x1 + 55, row_y + 6), fill=dot_color)
         if index == 3:
             draw.ellipse((x1 + 44, row_y - 5, x1 + 52, row_y + 3), outline=SURFACE, width=2)
-        label(draw, (x1 + 74, row_y - 9), time, 9, MUTED, True)
-
         title_value = title
         subtitle_value = subtitle
+        time_value = time
         if index == 1 and stage >= 1 and stage < 5:
             subtitle_value = "Outdoor activity · Affected"
         if stage == 5 and index == 1:
-            title_value = "Covered food hall"
-            subtitle_value = "Indoor replacement · Updated"
+            time_value = "14:10"
+            title_value = "Indoor cultural gallery"
+            subtitle_value = "Rain-ready replacement · Updated"
+        label(draw, (x1 + 74, row_y - 9), time_value, 9, MUTED, True)
         label(draw, (x1 + 122, row_y - 9), title_value, 10, INK_SOFT, True if is_affected or is_updated else False)
         label(draw, (x1 + 122, row_y + 11), subtitle_value, 8, CORAL if is_affected else TEAL if is_updated else MUTED)
 
@@ -284,9 +285,9 @@ def draw_summary(draw: ImageDraw.ImageDraw, stage: int, progress: float):
         label(draw, (x1 + 24, y1 + 58), "Choose your trade-off", 19, INK, True)
         label(draw, (x1 + 24, y1 + 86), "Every option explains its impact.", 10, INK_SOFT)
         cards = [
-            ("Covered food hall", "+RM 40", "4.6 km walking", "Low weather risk", TEAL, TEAL_50),
-            ("Museum + tasting", "+RM 80", "5.2 km walking", "More interests", BLUE, BLUE_100),
-            ("Cafe + rest block", "−RM 60", "3.8 km walking", "Lower budget", AMBER, AMBER_100),
+            ("Least walking", "+RM 40", "Day 2 −1.6 km", "Weather: Low", TEAL, TEAL_50),
+            ("Keep more interests", "+RM 80", "Day 2 −0.6 km", "Interests: More", BLUE, BLUE_100),
+            ("Lower budget", "−RM 60", "Day 2 +0.2 km", "Cost: −RM 60", AMBER, AMBER_100),
         ]
         active = 0 if progress < 0.72 else min(2, int((progress - 0.72) * 10))
         for index, (title, cost, walking, note, color, fill) in enumerate(cards):
@@ -307,8 +308,8 @@ def draw_summary(draw: ImageDraw.ImageDraw, stage: int, progress: float):
         label(draw, (x1 + 24, y1 + 86), "The proposal is still a pending draft.", 10, INK_SOFT)
         amount = ease(progress)
         diff_rows = [
-            ("Harmony", f"72% → {72 + int(19 * amount)}%", TEAL),
-            ("Walking", f"8.4 → {8.4 - 3.8 * amount:.1f} km", BLUE),
+            ("Harmony", f"91% → {91 - int(2 * amount)}%", TEAL),
+            ("Walking", "Day 2 −1.6 km", BLUE),
             ("Budget", f"RM 4,360 → RM {4_360 + int(40 * amount):,}", AMBER),
         ]
         for index, (name, value, color) in enumerate(diff_rows):
@@ -337,17 +338,17 @@ def draw_summary(draw: ImageDraw.ImageDraw, stage: int, progress: float):
     else:
         version_box = (x1 + 22, y1 + 18, x2 - 22, y1 + 82)
         rounded(draw, version_box, 17, TEAL_50)
-        centered_label(draw, (version_box[0], version_box[1] + 4, version_box[2], version_box[1] + 24), "CANDIDATE APPROVED", 8, TEAL, True)
-        centered_label(draw, (version_box[0], version_box[1] + 27, version_box[2], version_box[3] - 2), "Version 2 · Formal", 16, INK, True)
+        centered_label(draw, (version_box[0], version_box[1] + 4, version_box[2], version_box[1] + 24), "FORMAL VERSION UPDATED", 8, TEAL, True)
+        centered_label(draw, (version_box[0], version_box[1] + 27, version_box[2], version_box[3] - 2), "Approval complete", 16, INK, True)
 
         rain_box = (x1 + 22, y1 + 94, x2 - 22, y1 + 145)
         rounded(draw, rain_box, 14, AMBER_100)
-        centered_label(draw, (rain_box[0], rain_box[1] + 5, rain_box[2], rain_box[1] + 24), "RAIN REPLAN", 8, AMBER, True)
-        centered_label(draw, (rain_box[0], rain_box[1] + 24, rain_box[2], rain_box[3] - 3), "14:00–17:00 window repaired", 9, INK_SOFT, True)
+        centered_label(draw, (rain_box[0], rain_box[1] + 5, rain_box[2], rain_box[1] + 24), "RAIN REPLAN APPLIED", 8, AMBER, True)
+        centered_label(draw, (rain_box[0], rain_box[1] + 24, rain_box[2], rain_box[3] - 3), "14:10–16:10 indoor gallery", 9, INK_SOFT, True)
 
         label(draw, (x1 + 24, y1 + 171), "APPLIED CHANGES", 8, MUTED, True)
-        draw_check_row(draw, x1 + 24, y1 + 204, "14:00–17:00", "Covered food hall", TEAL)
-        draw_check_row(draw, x1 + 24, y1 + 242, "Walking", "8.4 → 4.6 km", BLUE)
+        draw_check_row(draw, x1 + 24, y1 + 204, "14:10–16:10", "Indoor gallery", TEAL)
+        draw_check_row(draw, x1 + 24, y1 + 242, "Walking", "Day 2 −1.6 km", BLUE)
         draw_check_row(draw, x1 + 24, y1 + 280, "Dinner", "Still locked", LOCKED)
         rounded(draw, (x1 + 24, y1 + 294, x2 - 24, y1 + 309), 8, TEAL_100)
         rounded(draw, (x1 + 24, y1 + 294, x1 + 24 + int(345 * ease(progress)), y1 + 309), 8, TEAL)
