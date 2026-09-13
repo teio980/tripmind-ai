@@ -39,6 +39,7 @@
   - [System architecture diagram](#system-architecture-diagram)
   - [Build plan & scope](#build-plan--scope)
 - [Detailed Product and Implementation Reference](#6-detailed-product-and-implementation-reference)
+  - [Positioning and Differentiation](#66-positioning-and-differentiation)
   - [How to Use TripMind](#69-how-to-use-tripmind)
   - [Routes and Navigation](#610-routes-and-navigation)
   - [Versions, Drafts, and Approval Rules](#611-versions-drafts-and-approval-rules)
@@ -411,21 +412,24 @@ First-time planning starts with the Chatbox, Requirement Clarifier, and Itinerar
 
 TripMind is an **explainable decision layer for a shared trip**, rather than only an itinerary organizer. It turns a rough request into a structured plan, makes group and physical-load trade-offs visible, and asks for approval before changing the formal plan.
 
-#### Comparison with Wanderlog
+#### Competitive landscape: TripMind's decision-layer advantage
 
-Wanderlog is a useful reference point because it provides a broad trip-organizing toolkit: itineraries and maps, reservations, budgeting, route optimization, collaboration, mobile apps, offline access, and live flight updates. [Wanderlog’s product page](https://wanderlog.com/) describes those capabilities. The comparison below is about product focus.
+[Wanderlog](https://wanderlog.com/), [TripIt](https://www.tripit.com/web), [Mindtrip](https://mindtrip.ai/), [Roadtrippers](https://roadtrippers.com/about/features/), and [Google Travel](https://www.google.com/travel/) are strong reference products, but their public pages primarily emphasize trip organization, booking aggregation, discovery, routing, recommendations, or sharing. TripMind is differentiated by the decision layer around a plan: whether it is fair to the group, physically manageable, financially acceptable, safe to change, and explainable before approval.
 
-| Dimension | Wanderlog emphasis | TripMind differentiation |
-| --- | --- | --- |
-| Starting point | Build and organize a trip with itinerary, map, reservations, and AI planning tools | Begin with one natural-language idea; the Chatbox asks only for the information that blocks a first itinerary |
-| Collaboration | Share and collaboratively edit a trip in real time | Model group satisfaction, conflicts, and the least-satisfied traveler so the organizer can explain a trade-off |
-| Physical load | Show time and distance between itinerary stops | Make walking, transfers, activity density, rest, comfort targets, and fatigue risk an explicit Energy decision |
-| Fixed arrangements | Store reservations and schedule details | Treat a user-locked arrangement as a constraint that every proposed optimization and replan must preserve and revalidate |
-| Disruptions | Offer live flight-status information alongside planning tools | Repair only the affected window, protect fixed arrangements, and present alternatives through a structured Experience Diff |
-| Comparing options | Organize the itinerary and its associated trip information | Compare Harmony, minimum satisfaction, budget, walking, fatigue and weather risk, retained experiences, and fixed-arrangement impact in one review |
-| Applying changes | Collaborative changes can be made directly to the shared plan | Create a pending draft first; only an approved, validated draft becomes the next formal version |
+The table intentionally includes only capabilities TripMind explicitly models that are not prominently described as core workflows in the reviewed public materials. “Not publicly emphasized” is not a claim that a competitor can never support a feature; it identifies where TripMind's product thesis is more specific and defensible.
 
-TripMind treats a trip as an explainable, collaborative, and approvable state object rather than a static checklist. Its product thesis is to protect group satisfaction, walking load, fixed arrangements, and experience quality whenever a plan changes.
+| TripMind differentiator | What TripMind explicitly does | What the reviewed competitor pages emphasize instead | Why this makes TripMind stronger |
+| --- | --- | --- | --- |
+| **Minimum-member-satisfaction protection** | Harmony shows every traveler's estimated satisfaction, surfaces the least-satisfied member, detects conflicts, and blocks an optimization that improves the average while seriously harming one person. | Public collaboration pages emphasize shared editing, comments, reactions, recommendations, or sharing a finished plan. | TripMind optimizes for a fair group outcome, not only a higher overall score or a more complete itinerary. |
+| **Travel Energy as a first-class decision** | Energy combines walking, transfers, activity density, rest blocks, early starts, late finishes, personal comfort targets, and fatigue risk into a comparable candidate metric. | Public planning pages emphasize routes, distance, drive time, maps, or nearby recommendations; fatigue-aware group evaluation is not a prominent public workflow. | TripMind can explain whether a plan is physically workable before the group commits to it. |
+| **Locked arrangements as hard constraints** | A dinner, reservation, or other commitment can be locked; every optimization and replan must preserve and revalidate it. | Public products emphasize storing, importing, routing around, or displaying reservations, without making lock-and-revalidate behavior a central product promise. | TripMind protects the experiences that matter instead of treating every itinerary item as equally replaceable. |
+| **Local disruption repair** | A rain event, delay, closure, or cancellation repairs only the affected time window while preserving unaffected experiences and locked arrangements. | Public travel products emphasize flight alerts, status information, route changes, or general itinerary editing. | TripMind limits the blast radius of change and keeps the rest of the trip stable. |
+| **Experience Diff before apply** | A pending proposal explains retained, changed, added, and removed experiences together with cost, Harmony, walking, risk, and fixed-arrangement impact. | Public products emphasize recommendations, customizable plans, or collaborative edits rather than a formal before-and-after decision preview. | Users understand the consequences before anything becomes the new formal plan. |
+| **Approval-gated version history** | A proposal remains a `PendingDraft`; deterministic validation and user approval create the next `FormalVersion`, while prior versions remain recoverable. | Public pages emphasize organizing or sharing trip information, not an explicit draft-to-approval state transition and audit trail. | TripMind makes itinerary changes traceable, reviewable, and reversible. |
+| **Privacy-aware group aggregation** | The group receives the conclusions needed for coordination while private budgets, quotes, notes, and sensitive constraints remain scoped to their owners. | Public collaboration pages emphasize sharing and group participation; privacy-preserving aggregation is not a prominent public differentiator. | TripMind can coordinate a group without exposing every member's raw personal data. |
+| **AI interpretation with deterministic authority** | The Agent handles intent, clarification, orchestration, and explanation; deterministic services own calculations, permissions, validation, scope control, and formal writes. | Public AI travel pages emphasize conversational recommendations or itinerary generation, without making this authority boundary the central user promise. | TripMind combines flexible AI interaction with rules that are inspectable and difficult to bypass. |
+
+TripMind is therefore not claiming to replace every travel marketplace or discovery tool. Its advantage is narrower and more defensible: it helps a group decide whether a proposed plan should be accepted, how a disruption should be repaired, and what must be protected before the plan changes.
 
 ### 6.7 Product Decisions
 
