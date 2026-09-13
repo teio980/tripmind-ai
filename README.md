@@ -91,19 +91,20 @@ This board groups the team's ideas around planning friction, group coordination,
 #### Problem tree
 
 ```mermaid
-flowchart LR
-    R1[Research split across apps] --> P[Travel plans are hard to coordinate and trust]
-    R2[Preferences and private constraints conflict] --> P
-    R3[Time, walking, budget, and disruptions change] --> P
-    P --> E1[Important information is missed]
-    P --> E2[One traveler may be underserved]
-    P --> E3[Changes are difficult to explain or reverse]
-    E1 --> S1[Requirement Clarifier and deterministic validation]
-    E2 --> S2[Harmony and Energy]
-    E3 --> S3[Local replan, Experience Diff, and version approval]
+flowchart BT
+    R1[Research is split across apps]:::cause --> P[Travel plans are hard to coordinate and trust]:::core
+    R2[Preferences and private constraints conflict]:::cause --> P
+    R3[Time, walking, budget, and disruptions keep changing]:::cause --> P
+    P --> E1[Important information is missed]:::effect
+    P --> E2[One traveler may be underserved]:::effect
+    P --> E3[Changes are difficult to explain or reverse]:::effect
+
+    classDef cause fill:#E8F1EC,stroke:#5D806B,color:#193326
+    classDef core fill:#F4E5C2,stroke:#B9862E,color:#34270F,stroke-width:3px
+    classDef effect fill:#F4E6E6,stroke:#AA6868,color:#421F1F
 ```
 
-This problem tree connects the fragmented-planning causes to the failure modes the team chose to address. It also shows why the selected feature set centers on clarification, fairness, physical load, and reversible change.
+The problem tree keeps the diagnosis separate from the intervention: causes sit below the trunk, the coordination-and-trust problem is the trunk, and the resulting failure modes branch above it. The selected TripMind features address those failure modes through clarification and validation, Harmony and Energy, and local replanning with Experience Diff and version approval.
 
 #### Feature prioritization matrix
 
