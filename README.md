@@ -1,5 +1,27 @@
 # TripMind by Teio
 
+<p align="center">
+  <img src="./public/tripmind-readme-cover.gif" alt="TripMind product cover showing the AI travel-planning experience" width="900" />
+</p>
+
+<p align="center"><em>Explainable travel planning for calmer, more coordinated journeys.</em></p>
+
+<p align="center">
+  <img alt="Next.js 15.5.25" src="https://img.shields.io/badge/Next.js-15.5.25-111827?style=flat-square&amp;logo=nextdotjs&amp;logoColor=white" />
+  <img alt="React 19.2.8" src="https://img.shields.io/badge/React-19.2.8-149eca?style=flat-square&amp;logo=react&amp;logoColor=white" />
+  <img alt="TypeScript 5.9.3" src="https://img.shields.io/badge/TypeScript-5.9.3-3178c6?style=flat-square&amp;logo=typescript&amp;logoColor=white" />
+  <img alt="CSS responsive design" src="https://img.shields.io/badge/CSS-Responsive%20design-1572B6?style=flat-square&amp;logo=css3&amp;logoColor=white" />
+  <img alt="React Context and localStorage" src="https://img.shields.io/badge/State-Context%20%2B%20localStorage-0e7168?style=flat-square" />
+  <img alt="PWA manifest ready" src="https://img.shields.io/badge/PWA-Manifest%20ready-5a4fcf?style=flat-square" />
+</p>
+
+<p align="center">
+  <img alt="Supabase planned for MVP" src="https://img.shields.io/badge/Supabase-MVP%20planned-3ecf8e?style=flat-square&amp;logo=supabase&amp;logoColor=0f172a" />
+  <img alt="AI provider adapters planned" src="https://img.shields.io/badge/AI-Provider%20adapters%20planned-8b5cf6?style=flat-square" />
+  <img alt="Maps provider adapters planned" src="https://img.shields.io/badge/Maps-Provider%20adapters%20planned-4285f4?style=flat-square" />
+  <img alt="English Chinese and Bahasa Melayu copy" src="https://img.shields.io/badge/Copy-EN%20%2B%20%E4%B8%AD%E6%96%87%20%2B%20BM-f4b95f?style=flat-square" />
+</p>
+
 **Team:** Kong Wen Khang · Lim Jun Wei · Law Yong Soon
 
 **Problem Statement:** Travel Planner
@@ -10,15 +32,26 @@
 
 > Don’t just plan the trip. Protect the experience.
 
-<p align="center">
-  <img src="./public/tripmind-logo.svg" alt="TripMind logo" width="250" />
-</p>
+## Table of Contents
 
-<p align="center">
-  <img src="./public/tripmind-product-flow.gif" alt="TripMind product flow from Chatbox to itinerary, Harmony, Energy, disruption planning, and budget approval" width="820" />
-</p>
-
-<p align="center"><em>From a rough travel idea to a protected, explainable, approvable itinerary.</em></p>
+- [Project Overview](#1-project-overview)
+- [Ideation & Process](#2-ideation--process)
+- [Design & Prototype](#3-design--prototype)
+- [What Makes It Different](#4-what-makes-it-different)
+- [Technical Architecture & Feasibility](#5-technical-architecture--feasibility)
+  - [Tech stack](#tech-stack)
+  - [System architecture diagram](#system-architecture-diagram)
+  - [Build plan & scope](#build-plan--scope)
+- [Detailed Product and Implementation Reference](#6-detailed-product-and-implementation-reference)
+  - [How to Use TripMind](#69-how-to-use-tripmind)
+  - [Routes and Navigation](#610-routes-and-navigation)
+  - [Versions, Drafts, and Approval Rules](#611-versions-drafts-and-approval-rules)
+  - [Technology Stack](#614-technology-stack)
+  - [Project Structure](#615-project-structure)
+  - [Local Development](#616-local-development)
+  - [Deployment and Verification](#617-deployment-and-verification)
+  - [Validation Checklist](#618-validation-checklist)
+  - [License](#623-license)
 
 TripMind is an explainable travel-planning product built around an AI Chatbox and a travel decision subsystem. It turns a natural-language travel idea into a structured itinerary that can be coordinated, evaluated, adapted, approved, and shared. A traveler can start with one sentence, answer only the questions that matter, and keep refining the plan as the trip evolves.
 
