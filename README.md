@@ -54,8 +54,14 @@
   - [License](#623-license)
 
 <p align="center">
+  <img src="./public/tripmind-logo.svg" alt="TripMind logo" width="250" />
+</p>
+
+<p align="center">
   <img src="./public/tripmind-product-flow.gif" alt="TripMind product flow from Chatbox to itinerary, Harmony, Energy, disruption planning, and budget approval" width="820" />
 </p>
+
+<p align="center"><em>From a rough travel idea to a protected, explainable, approvable itinerary.</em></p>
 
 TripMind is an explainable travel-planning product built around an AI Chatbox and a travel decision subsystem. It turns a natural-language travel idea into a structured itinerary that can be coordinated, evaluated, adapted, approved, and shared. A traveler can start with one sentence, answer only the questions that matter, and keep refining the plan as the trip evolves.
 
