@@ -24,7 +24,7 @@
 
 **Video Presentation:** [Watch the unlisted video](<https://mmuedumy-my.sharepoint.com/:v:/g/personal/kong_wen_khang_student_mmu_edu_my/IQD_vPn2FUQ8So6Cvz-G6IIaAfQzXqyb36JB3gejFtYc5Kk?e=uF2jrW>)
 
-**Presentation Slides:** [View the presentation slides](<https://mmuedumy-my.sharepoint.com/:p:/g/personal/kong_wen_khang_student_mmu_edu_my/IQDf35jjq_lUQLsbxMwq0cYbAb98Doa-L8PfYsuBkQqWYMk?e=sX3Dpk>)
+**Presentation Slides:** [View the presentation slides](<https://mmuedumy-my.sharepoint.com/:p:/g/personal/kong_wen_khang_student_mmu_edu_my/IQDf35jjq_lUQLsbxMwq0cYbAb98Doa-L8PfYsuBkQqWYMk?e=sX3Dpk>) · [Download the PPTX](./presentation-output/TripMind.pptx)
 
 > Don’t just plan the trip. Protect the experience.
 

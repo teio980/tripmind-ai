@@ -8,6 +8,5 @@ docx/
 # Generated presentation artifacts
 .pptx-build/
 .codex-finalizer/
-presentation-output/
 
 .vercel
