@@ -1,4 +1,12 @@
-# TripMind
+# TripMind by Teio
+
+**Team:** Kong Wen Khang · Lim Jun Wei · Law Yong Soon
+
+**Problem Statement:** Travel Planner
+
+**Video Presentation:** [Watch the unlisted video](<https://mmuedumy-my.sharepoint.com/:v:/g/personal/kong_wen_khang_student_mmu_edu_my/IQD_vPn2FUQ8So6Cvz-G6IIaAfQzXqyb36JB3gejFtYc5Kk?e=uF2jrW>)
+
+**Presentation Slides:** [View the presentation slides](<https://mmuedumy-my.sharepoint.com/:p:/g/personal/kong_wen_khang_student_mmu_edu_my/IQDf35jjq_lUQLsbxMwq0cYbAb98Doa-L8PfYsuBkQqWYMk?e=sX3Dpk>)
 
 > Don’t just plan the trip. Protect the experience.
 
@@ -16,7 +24,214 @@ TripMind is an explainable travel-planning product built around an AI Chatbox an
 
 TripMind optimizes more than a list of places. Its travel decision subsystem protects the parts of a trip that matter in real life: whether the group can accept the plan, whether every traveler can physically handle it, how much budget remains, which arrangements are fixed, and which experiences are worth keeping when circumstances change.
 
-## Product Overview
+## 1. Project Overview
+
+**The Problem.** Travel planning is fragmented across search tools, group chats, maps, notes, and spreadsheets. This makes it hard for solo travelers and small groups to know what information is still missing, reconcile conflicting preferences, keep a plan within time, mobility, and budget limits, or recover cleanly when weather and delays disrupt the itinerary. The main stakeholders are travelers, trip organizers, invited friends or family members, and—when the product is extended—travel-data and service providers. Products such as [Wanderlog](https://wanderlog.com/) already combine itinerary organization, maps, reservations, budgets, collaboration, and AI planning; however, TripMind focuses on gaps that remain important for this project: protecting the least-satisfied traveler, making physical load explicit, preserving locked arrangements, and previewing a localized change before it becomes the formal plan.
+
+**Our Solution.** TripMind is an explainable travel-planning product built around an AI Chatbox and a deterministic travel decision layer. It turns a rough natural-language idea into a structured itinerary, then keeps group preferences, physical load, budget, disruptions, approvals, and history connected to the same trip state. The Agent interprets intent and explains options, while rule-based services validate time, distance, buffers, budget, opening hours, member limits, and fixed arrangements. Every meaningful itinerary change remains a pending draft until the traveler reviews its Experience Diff and approves it.
+
+**Feature set**
+
+- Chatbox-first planning and requirement clarification.
+- Constraint-aware itinerary generation and validation.
+- Group Harmony scoring with minimum-member-satisfaction protection.
+- Travel Energy estimates for walking, transfers, activity density, rest, and fatigue risk.
+- Local disruption replanning that protects locked arrangements.
+- Experience Diff previews before any formal change.
+- Budget categories, remaining headroom, pending deltas, and version history.
+- Privacy-aware solo and group collaboration.
+- Discover / Surprise Me suggestions for usable free-time windows.
+- Provider-independent contracts for AI, places, maps, routing, pricing, and weather.
+- Business Scope Guard boundaries for travel-only Agent behavior.
+
+## 2. Ideation & Process
+
+### 2.1 Ideas We Considered
+
+The table records every distinct product idea documented in the repository's current planning materials. Chosen ideas are listed first; “Deferred” means the idea remains part of the longer-term product direction but was intentionally removed from the present prototype scope.
+
+| **Idea** | **Why it was dropped / kept** |
+| --- | --- |
+| Chatbox-first planning (Chosen) | Kept because a traveler can start with an unfinished idea instead of learning a long planning form. |
+| Requirement Clarifier (Chosen) | Kept to separate confirmed inputs, missing essentials, and optional defaults before generation. |
+| Constraint-aware itinerary (Chosen) | Kept because a visually attractive itinerary can still fail on time, transfers, walking, budget, opening hours, or fixed arrangements. |
+| Explain-before-apply and Experience Diff (Chosen) | Kept so users can understand cost, effort, satisfaction, and schedule consequences before approving a new formal version. |
+| Group Harmony (Chosen) | Kept because a group average can hide a traveler whose important needs are being ignored. |
+| Travel Energy (Chosen) | Kept to make walking, activity density, transfers, rest, and fatigue risk visible planning variables. |
+| Local disruption replanning (Chosen) | Kept so rain, delays, closures, or cancellations repair only the affected time window. |
+| Locked-arrangement protection (Chosen) | Kept because reservations and other commitments must survive optimization and replanning unless the user explicitly unlocks them. |
+| Budget planner and version history (Chosen) | Kept to show affordability, draft cost changes, remaining headroom, and a recoverable approval trail. |
+| Solo-first, optional collaboration (Chosen) | Kept so one traveler can complete the core flow and invite others only after the first itinerary exists. |
+| Privacy-aware preference aggregation (Chosen) | Kept so group conclusions can be shared without exposing exact private budgets, notes, or individual quotes by default. |
+| Provider-independent adapters (Chosen) | Kept to prevent the state model and approval rules from depending on one AI, map, weather, or pricing vendor. |
+| Business Scope Guard (Chosen for MVP architecture) | Kept to restrict the Agent to travel planning and prevent unrelated or unsafe requests from changing trip state. |
+| Discover / Surprise Me (Chosen for extended scope) | Kept as a controlled way to fill a real free-time window using location, budget, preferences, and Energy. |
+| Long form before planning (Dropped) | Dropped because it raises the barrier for travelers who do not yet know the answers; progressive clarification is the selected interaction. |
+| Direct AI overwrite of the itinerary (Dropped) | Dropped because silent changes are hard to trust, audit, or reverse; drafts and approval are safer. |
+| Full-day regeneration after every disruption (Dropped) | Dropped because it can destroy unaffected experiences and locked arrangements; local repair is more predictable. |
+| Mandatory group setup before planning (Dropped) | Dropped because it blocks solo use and slows the first useful result; invitations are optional and come later. |
+| Public display of raw member constraints (Dropped) | Dropped for privacy; the group view exposes only the aggregated information needed for coordination. |
+| Exact global optimization in the MVP (Deferred) | Deferred because a transparent heuristic is feasible within the build phase and easier to validate than a global solver. |
+| Simultaneous integration of every AI and travel provider (Deferred) | Deferred because the MVP needs one live provider plus a deterministic fixture fallback, while adapters preserve future choice. |
+| Offline itinerary editing, background sync, and push notifications (Deferred) | Deferred because they expand state-conflict and privacy risk; the immediate PWA scope is responsive installation and reliable online recovery. |
+| Full booking, payment, refund, and ticketing flows (Dropped from scope) | Dropped because TripMind is a planning and decision product, not a transaction platform. |
+| Full internal administration suite (Deferred) | Deferred until the core traveler journey is stable so administrative work does not displace the planning loop. |
+| Real-time in-trip tracking and final trip summaries (Deferred) | Deferred as later extensions; they are not required to prove the core planning, comparison, and approval loop. |
+
+### 2.2 Ideation Boards
+
+#### Affinity diagram
+
+<p align="center">
+  <img src="./public/tripmind-affinity-board.png" alt="TripMind affinity diagram grouping chosen, deferred, and dropped product ideas" width="820" />
+</p>
+
+This board groups the team's ideas around planning friction, group coordination, trust, real-world trip constraints, and later opportunities. It preserves both the chosen direction and the ideas that were deferred or dropped during scope reduction.
+
+#### Problem tree
+
+```mermaid
+flowchart LR
+    R1[Research split across apps] --> P[Travel plans are hard to coordinate and trust]
+    R2[Preferences and private constraints conflict] --> P
+    R3[Time, walking, budget, and disruptions change] --> P
+    P --> E1[Important information is missed]
+    P --> E2[One traveler may be underserved]
+    P --> E3[Changes are difficult to explain or reverse]
+    E1 --> S1[Requirement Clarifier and deterministic validation]
+    E2 --> S2[Harmony and Energy]
+    E3 --> S3[Local replan, Experience Diff, and version approval]
+```
+
+This problem tree connects the fragmented-planning causes to the failure modes the team chose to address. It also shows why the selected feature set centers on clarification, fairness, physical load, and reversible change.
+
+#### Feature prioritization matrix
+
+<p align="center">
+  <img src="./public/tripmind-feature-priority-matrix.png" alt="TripMind feature prioritization matrix comparing traveler value with implementation effort" width="820" />
+</p>
+
+The matrix shows why Chatbox planning, requirement clarification, Experience Diff, locked-plan protection, local replanning, Harmony, and Energy form the prototype core. Live providers and authenticated persistence move into the build phase, while transaction, offline-sync, and administration work remain outside the shortest trusted loop.
+
+#### Selected user-flow board
+
+<p align="center">
+  <img src="./public/tripmind-product-flow.gif" alt="TripMind selected product flow from a rough idea through planning, Harmony, Energy, disruption handling, and approval" width="820" />
+</p>
+
+This board shows how the chosen ideas were reduced to one coherent journey: clarify first, create a formal itinerary, then add Harmony, Energy, Adapt, Budget, and approval around that shared state.
+
+#### Responsibility and feasibility board
+
+<p align="center">
+  <img src="./public/tripmind-data-flow.gif" alt="TripMind responsibility split between user interface, AI interpretation, deterministic services, pending drafts, and persistence" width="820" />
+</p>
+
+This board captures the team's key feasibility decision: AI handles language and explanation, while deterministic services own calculations, validation, permissions, approval, and formal writes.
+
+## 3. Design & Prototype
+
+**UI Prototype:** [Open the live prototype](https://tripmind-ai-xi.vercel.app/) · [Source repository](https://github.com/teio980/tripmind-ai)
+
+The public prototype link must be tested in an incognito window before submission. The current repository contains the following key interactions and routes:
+
+### Key screens
+
+| Key screen / interaction | Route | What the reviewer can test |
+| --- | --- | --- |
+| Home AI Chatbox | `/` | Start with a rough travel idea and enter the planning flow. |
+| Agent clarification and review | `/chat/demo` | Add or remove requirements, then confirm the inputs used for generation. |
+| Itinerary and Travel Energy | `/trips/penang-demo/itinerary` | Review the day-by-day plan and open the Energy comparison panel. |
+| Group Harmony | `/trips/penang-demo/consensus` | Inspect group preferences, per-traveler satisfaction, and a candidate optimization. |
+| Disruption replanning | `/trips/penang-demo/replan` | Compare rain alternatives while preserving the locked dinner. |
+| Budget and version approval | `/trips/penang-demo/budget` | Review costs, pending changes, approval state, and version history. |
+
+#### Chatbox-to-itinerary flow
+
+<p align="center">
+  <img src="./public/tripmind-product-flow.gif" alt="TripMind Chatbox-to-itinerary interaction" width="820" />
+</p>
+
+The traveler moves from an incomplete idea to clarified requirements and an inspectable itinerary without filling a long form first.
+
+#### Harmony and Energy review
+
+<p align="center">
+  <img src="./public/tripmind-harmony-energy.gif" alt="TripMind Group Harmony and Travel Energy interaction" width="820" />
+</p>
+
+The group can see who benefits, who may be underserved, and how a lower-load candidate changes walking, rest, transfers, and fatigue risk.
+
+#### Disruption and Experience Diff
+
+<p align="center">
+  <img src="./public/tripmind-experience-diff.gif" alt="TripMind disruption replan and Experience Diff interaction" width="820" />
+</p>
+
+A rain event affects only the relevant afternoon window; alternatives expose trade-offs and keep the locked dinner unchanged until approval.
+
+#### AI and deterministic decision flow
+
+<p align="center">
+  <img src="./public/tripmind-data-flow.gif" alt="TripMind AI and deterministic decision-flow interaction" width="820" />
+</p>
+
+The visual explains what the Agent may propose and what the deterministic layer must validate before a draft can become formal state.
+
+## 4. What Makes It Different
+
+| Novel feature | Original angle or TripMind twist |
+| --- | --- |
+| Group Harmony with minimum-satisfaction protection | TripMind does not stop at a single average score; it surfaces each traveler and protects the least-satisfied member during optimization. |
+| Travel Energy | Walking, transfers, consecutive activities, early starts, late finishes, and rest become comparable itinerary metrics rather than afterthoughts. |
+| Experience Diff and approval | AI suggestions are treated as drafts. Users see retained experiences, trade-offs, cost, risk, and fixed-arrangement impact before a new version is written. |
+| Local disruption repair | The planner repairs the affected window instead of regenerating an entire day and potentially losing commitments. |
+| Locked-arrangement validation | A reservation is not merely displayed; it becomes a hard constraint that every candidate must preserve and revalidate. |
+| Privacy-aware collaboration | The system coordinates aggregated needs while keeping raw private budgets, quotes, and sensitive notes scoped to their owners. |
+| AI/deterministic separation | Natural-language interpretation remains flexible, while authoritative calculations, permissions, validation, and writes stay rule-based and traceable. |
+| Stateful travel object | Requirements, formal versions, pending drafts, events, costs, and explanations stay attached to one maintainable trip rather than disappearing into chat history. |
+
+The detailed comparison with Wanderlog appears in [Positioning and Differentiation](#66-positioning-and-differentiation).
+
+## 5. Technical Architecture & Feasibility
+
+### Tech stack
+
+| Layer | Prototype implementation | Why it was chosen | Expected constraint / next step |
+| --- | --- | --- | --- |
+| Frontend | Next.js 15 App Router, React 19, TypeScript, CSS, Lucide React | Fast component-based development, typed state, responsive routing, and a familiar deployment path. | The current prototype is client-heavy; production-sensitive operations must move behind server routes. |
+| State | React Context with browser `localStorage` persistence | Keeps the multi-route demo coherent across refreshes without backend setup. | It is single-device prototype storage, not secure multi-user persistence. |
+| Data | Deterministic Penang fixture | Makes the demo reliable and keeps calculations reproducible. | Costs, routes, weather, Harmony, Energy, and satisfaction are estimates rather than live data. |
+| Backend | Not connected in the current prototype; planned Next.js Route Handlers and domain services | Keeps API, validation, permission, and provider boundaries in the same TypeScript application. | The build phase must implement authentication, schema validation, error handling, and server-only secrets. |
+| Database and auth | Not connected in the current prototype; Supabase Postgres, Auth, and Row Level Security are planned for the MVP | Provides relational trip/version data, authentication, and scoped access with a practical free tier. | RLS policies, grants, server-side aggregation, migrations, and a server proxy are required before storing private group data. |
+| AI and travel APIs | Replaceable provider contracts are planned; the prototype currently uses fixtures | Avoids coupling TripMind's state and approval model to a single AI, maps, places, routing, pricing, or weather vendor. | The MVP should connect one live provider per required capability and retain fixture fallback for a stable demo. |
+| Hosting | Planned for a Next.js-compatible HTTPS platform such as Vercel | Supports App Router deployment, route handlers, environment variables, and PWA delivery. | A public URL has not been recorded in this repository and must be verified in an incognito window. |
+| PWA | Web App Manifest and standalone display configuration | Makes the mobile-first experience installable with a small implementation footprint. | Service worker caching, offline editing, background sync, and push notifications are outside the current prototype scope. |
+
+### System architecture diagram
+
+<p align="center">
+  <img src="./public/tripmind-data-flow.gif" alt="TripMind system architecture and data flow" width="820" />
+</p>
+
+The browser presents trip state and sends user actions. In the planned MVP, authenticated route handlers run the Business Scope Guard, the Agent coordinates only permitted travel tools, deterministic services validate every candidate, and persistence stores a new formal version only after approval.
+
+### Build plan & scope
+
+| Scope | What will be built or retained |
+| --- | --- |
+| Current prototype | Six navigable product areas covering Chatbox clarification, generation review, itinerary, Harmony, Energy, Adapt, Budget, pending drafts, approval, version history, reset, responsive layout, and PWA manifest behavior using a deterministic Penang fixture. |
+| Build phase—core | Add server-side scope checks, one live AI provider, structured Agent output, deterministic validation, authenticated trip persistence, and the complete Chatbox-to-first-itinerary loop. |
+| Build phase—decision layer | Persist locked arrangements and versions; complete local disruption repair, Experience Diff, Harmony, Energy, budget checks, approval, cancellation, and stale-draft protection. |
+| Build phase—collaboration | Add solo-first accounts, invitation links, member roles, private preference storage, and safe group-level aggregation. |
+| Build phase—deployment and QA | Deploy over HTTPS, configure secrets, validate direct routes and refresh recovery, test mobile and desktop layouts, run type/build checks, and verify every public submission link in an incognito window. |
+| Explicitly outside this build | Booking, payment, refunds, a global optimization solver, offline editing, background sync, push notifications, every provider integration at once, and the full internal admin suite. |
+
+The intentionally narrow delivery target is one trustworthy end-to-end loop: a traveler starts with a rough idea, confirms the minimum requirements, receives a validated itinerary, previews one meaningful change or disruption response, and approves it as a recoverable new version.
+
+## 6. Detailed Product and Implementation Reference
+
+### 6.1 Product Overview
 
 TripMind connects the complete travel-planning journey into one stateful workflow:
 
@@ -43,7 +258,7 @@ The subsystem is organized around four connected capabilities:
 - **Adapt**: repair the affected part of a trip when weather, delays, closures, or cancellations occur.
 - **Discover**: recommend controlled, spontaneous experiences during an available time window based on location, budget, preferences, and Energy.
 
-## Who It Is For
+### 6.2 Who It Is For
 
 TripMind is designed for solo travelers and small groups of 1–8 friends or family members.
 
@@ -64,7 +279,7 @@ Typical use cases include:
 - Replanning an afternoon after rain, a delay, a closure, or a cancellation.
 - Comparing a lower-cost, lower-walking, or higher-interest alternative before approving it.
 
-## The Problem TripMind Solves
+### 6.3 The Problem TripMind Solves
 
 Travel planning usually splits destination research, group discussion, budgeting, itinerary editing, and disruption handling across several tools. TripMind connects these steps:
 
@@ -77,15 +292,15 @@ Travel planning usually splits destination research, group discussion, budgeting
 - Every meaningful change explains what changed, why it changed, what it costs, and who may be affected.
 - A proposed change becomes formal only after the user reviews and approves it.
 
-## Core Features
+### 6.4 Core Features
 
-### 1. Chatbox-first planning
+#### 1. Chatbox-first planning
 
 The Chatbox is the primary entry point. Users can begin with “I want to travel, but I do not have a plan yet,” or provide a destination, trip length, interests, pace, or an itinerary change directly.
 
 The Agent extracts what is already known and prioritizes destination and date or trip length because those are the fields needed to start generation. Optional details such as travelers, interests, and pace can be added later or filled with clearly labeled defaults.
 
-### 2. Explain before apply
+#### 2. Explain before apply
 
 TripMind does not silently overwrite the current itinerary. When a user asks to start later, optimize Harmony, reduce walking, or respond to rain, the system creates a pending draft based on the current formal version and shows an Experience Diff.
 
@@ -97,7 +312,7 @@ Only approval turns the draft into the next formal version. Closing, canceling, 
 
 <p align="center"><em>Inspect the affected window, compare trade-offs, and approve a local replan.</em></p>
 
-### 3. Group Harmony
+#### 3. Group Harmony
 
 Harmony is more than one group score. It shows:
 
@@ -111,7 +326,7 @@ Harmony is more than one group score. It shows:
 
 The goal is not to maximize an average while sacrificing one person. An optimization should improve the overall experience while protecting minimum member satisfaction.
 
-### 4. Travel Energy
+#### 4. Travel Energy
 
 Travel Energy makes “will this be too tiring?” a visible planning discussion. It accounts for:
 
@@ -130,7 +345,7 @@ The itinerary page opens Energy as an in-context panel. Travelers can compare a 
 
 <p align="center"><em>Harmony protects the least-satisfied traveler while Energy makes physical load visible before approval.</em></p>
 
-### 5. Constraint-aware itinerary planning
+#### 5. Constraint-aware itinerary planning
 
 TripMind separates natural-language understanding from deterministic validation:
 
@@ -139,7 +354,7 @@ TripMind separates natural-language understanding from deterministic validation:
 - A candidate that fails validation cannot silently become the formal itinerary.
 - Locked arrangements remain visibly locked and must be preserved by optimizations and replans.
 
-### 6. Disruption Replanner
+#### 6. Disruption Replanner
 
 When a disruption occurs, TripMind:
 
@@ -150,23 +365,23 @@ When a disruption occurs, TripMind:
 5. Shows a standardized Experience Diff.
 6. Lets the user choose and approve the result.
 
-### 7. Budget and version control
+#### 7. Budget and version control
 
 Budget review brings the total budget, category budgets, current spend, remaining headroom, draft changes, and version history into one place. Users can see whether a proposal changes accommodation, food, transport, or activity costs, and what happens if they cancel it.
 
 Every formal version keeps its change label, estimated spend, and key metrics. Older versions remain available. Version numbers increase from the formal version that exists at the moment of approval; no feature is permanently tied to a specific version number.
 
-### 8. Privacy-aware collaboration
+#### 8. Privacy-aware collaboration
 
 TripMind distinguishes private member input from aggregated group results. A group view can show shared preferences, coordination needs, and system reasoning without exposing exact private budgets, private quotes, or sensitive notes by default.
 
 Inviting travelers is optional and happens after the first itinerary exists. A solo traveler can use the core product without inviting anyone.
 
-### 9. Provider-independent intelligence
+#### 9. Provider-independent intelligence
 
 AI, place, map, routing, pricing, and weather capabilities connect through replaceable adapters. The same `TripState`, validation, approval, permission, and explanation contracts apply regardless of the selected provider. This keeps the product consistent while allowing regional data and service choices to change safely.
 
-## Complete Capability Map
+### 6.5 Complete Capability Map
 
 | Module | Problem addressed | Key capabilities |
 | --- | --- | --- |
@@ -184,11 +399,11 @@ AI, place, map, routing, pricing, and weather capabilities connect through repla
 
 First-time planning starts with the Chatbox, Requirement Clarifier, and Itinerary Planner. Harmony, Energy, Adapt, Budget, and Discover then enrich the same itinerary and state model.
 
-## Positioning and Differentiation
+### 6.6 Positioning and Differentiation
 
 TripMind is an **explainable decision layer for a shared trip**, rather than only an itinerary organizer. It turns a rough request into a structured plan, makes group and physical-load trade-offs visible, and asks for approval before changing the formal plan.
 
-### Comparison with Wanderlog
+#### Comparison with Wanderlog
 
 Wanderlog is a useful reference point because it provides a broad trip-organizing toolkit: itineraries and maps, reservations, budgeting, route optimization, collaboration, mobile apps, offline access, and live flight updates. [Wanderlog’s product page](https://wanderlog.com/) describes those capabilities. The comparison below is about product focus.
 
@@ -204,7 +419,7 @@ Wanderlog is a useful reference point because it provides a broad trip-organizin
 
 TripMind treats a trip as an explainable, collaborative, and approvable state object rather than a static checklist. Its product thesis is to protect group satisfaction, walking load, fixed arrangements, and experience quality whenever a plan changes.
 
-## Product Decisions
+### 6.7 Product Decisions
 
 | Idea | Decision | Reason | Product behavior |
 | --- | --- | --- | --- |
@@ -215,7 +430,7 @@ TripMind treats a trip as an explainable, collaborative, and approvable state ob
 | Experience Diff | Adopted | Users need to see the consequence of a change before they accept it. | Pending drafts compare cost, Harmony, minimum satisfaction, walking, risk, retained experiences, and fixed-arrangement impact. |
 | Provider adapters | Adopted | Travel data and intelligence providers vary by market and service. | AI, places, maps, routing, pricing, and weather connect through explicit contracts without changing `TripState` or approval rules. |
 
-## Agent Scope and Safety
+### 6.8 Agent Scope and Safety
 
 The TripMind Agent is a travel-state orchestrator, not a general-purpose chatbot. It can help with:
 
@@ -236,11 +451,11 @@ A `Business Scope Guard` sits before and after the Agent:
 
 This boundary keeps the model responsible for understanding and explanation while system rules remain responsible for facts, calculations, permissions, and final writes.
 
-## How to Use TripMind
+### 6.9 How to Use TripMind
 
 The following walkthrough covers the complete experience using a Penang starter itinerary as a concrete travel workspace.
 
-### 1. Start with a travel idea
+#### 1. Start with a travel idea
 
 Open the home page and enter a sentence in the Chatbox, for example:
 
@@ -256,7 +471,7 @@ You can also try:
 
 Click send to enter the Agent follow-up page. If the request is unrelated to travel, TripMind explains that it handles travel planning and itinerary management and does not create unrelated state.
 
-### 2. Answer the Agent’s necessary questions
+#### 2. Answer the Agent’s necessary questions
 
 The Agent prioritizes:
 
@@ -265,7 +480,7 @@ The Agent prioritizes:
 
 The `Current requirements` card shows what has been remembered. Destination, duration, interests, and pace values can be removed individually; removing a value returns it to the missing or optional state.
 
-### 3. Review requirements and generate the itinerary
+#### 3. Review requirements and generate the itinerary
 
 When destination and trip length are available, the pre-generation review shows:
 
@@ -282,7 +497,7 @@ Select `Generate itinerary`. The generation screen shows five stages:
 4. Validate hard constraints: check dietary needs, walking limits, transport, fixed arrangements, and time buffers.
 5. Save Version 1: save the first formal itinerary.
 
-### 4. Review the itinerary
+#### 4. Review the itinerary
 
 The itinerary page includes:
 
@@ -295,7 +510,7 @@ The itinerary page includes:
 - `Ask Agent` for a targeted change.
 - Energy and Harmony panels.
 
-### 5. Compare and approve a change
+#### 5. Compare and approve a change
 
 For a later start, lower walking load, Harmony optimization, or disruption response:
 
@@ -305,7 +520,7 @@ For a later start, lower walking load, Harmony optimization, or disruption respo
 4. The traveler approves or cancels the draft.
 5. Approval creates the next formal version and preserves the prior version in history.
 
-### 6. Use Harmony, Energy, Adapt, and Budget
+#### 6. Use Harmony, Energy, Adapt, and Budget
 
 The dedicated panels provide:
 
@@ -314,7 +529,7 @@ The dedicated panels provide:
 - **Adapt**: disruption details, affected window, preserved arrangements, alternatives, and Experience Diff.
 - **Budget**: category limits, current spend, remaining headroom, draft deltas, and version history.
 
-## Routes and Navigation
+### 6.10 Routes and Navigation
 
 The application provides the following product areas:
 
@@ -329,7 +544,7 @@ The application provides the following product areas:
 
 The trip area uses desktop top navigation and a mobile bottom navigation. The UI adapts to narrow screens; Agent and Energy open as drawers. The project also includes a PWA manifest and standalone display configuration.
 
-### Product routes
+#### Product routes
 
 | Route | Page | Purpose |
 | --- | --- | --- |
@@ -342,7 +557,7 @@ The trip area uses desktop top navigation and a mobile bottom navigation. The UI
 | `/trips/penang-demo/replan` | Adapt | Review a disruption and choose a local replan |
 | `/trips/penang-demo/budget` | Budget and version review | Compare costs, view history, and approve drafts |
 
-### Penang reference itinerary
+#### Penang reference itinerary
 
 The Penang workspace illustrates a three-day food and culture itinerary with explicit group constraints and a protected dinner arrangement:
 
@@ -371,7 +586,7 @@ The Experience Diff compares three disruption strategies:
 
 All alternatives preserve the locked Day 2 dinner and validate the replacement end time, transfer, and dinner buffer before approval.
 
-## Versions, Drafts, and Approval Rules
+### 6.11 Versions, Drafts, and Approval Rules
 
 TripMind stores the current formal itinerary separately from pending candidates:
 
@@ -395,13 +610,13 @@ Version 1: first itinerary
 
 Version numbers are not tied to specific features. If a step is skipped, later approvals continue from the formal version that actually exists.
 
-## Persistence and Reset
+### 6.12 Persistence and Reset
 
 Trip state is managed through a persistence adapter that keeps the formal itinerary, pending drafts, and version history available across refreshes, back navigation, and direct child-route access. Workspace synchronization and permissions are applied at the account and trip level, while private member inputs remain scoped to their owners.
 
 The trip area provides a `Reset workspace` action for clearing the active itinerary, pending drafts, version history, and local session state before starting a new planning session.
 
-## AI, Deterministic Logic, and Data Flow
+### 6.13 AI, Deterministic Logic, and Data Flow
 
 TripMind separates language understanding from deterministic state and domain logic. The Agent interprets intent and coordinates domain operations; deterministic services remain authoritative for facts, calculations, permissions, validation, and writes.
 
@@ -449,7 +664,7 @@ The LLM is responsible for understanding intent, asking for missing requirements
 | Version service | Keep formal state separate from pending proposals and preserve history |
 | Provider adapters | Connect AI, places, maps, routing, pricing, and weather without coupling business rules to a vendor |
 
-### Core domain model
+#### Core domain model
 
 The shared domain model is built around:
 
@@ -461,7 +676,7 @@ The shared domain model is built around:
 
 The UI communicates estimated values, pending approval, locked arrangements, and formal versions separately. Real secrets belong only in server environments, never in the browser bundle, logs, or repository.
 
-## Technology Stack
+### 6.14 Technology Stack
 
 - **Next.js 15.5.25**: App Router, page routing, and the application shell.
 - **React 19.2.8**: Interactive screens and component state.
@@ -475,7 +690,7 @@ The UI communicates estimated values, pending approval, locked arrangements, and
 
 The installed package versions below are recorded in `package-lock.json`; `package.json` contains the compatible version ranges. The subsystem keeps UI, domain contracts, provider adapters, and persistence boundaries independent so deployment environments can select the appropriate service implementations.
 
-## Project Structure
+### 6.15 Project Structure
 
 ```text
 tripmind-ai/
@@ -519,21 +734,21 @@ tripmind-ai/
 └─ README.md
 ```
 
-## Local Development
+### 6.16 Local Development
 
-### Requirements
+#### Requirements
 
 - Node.js 22+.
 - npm 10+.
 - Configure connected service credentials through environment variables when the corresponding provider is enabled. Never commit secrets.
 
-### Install dependencies
+#### Install dependencies
 
 ```bash
 npm install
 ```
 
-### Start the development server
+#### Start the development server
 
 ```bash
 npm run dev
@@ -541,14 +756,14 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Create and run a production build
+#### Create and run a production build
 
 ```bash
 npm run build
 npm run start
 ```
 
-### Available scripts
+#### Available scripts
 
 | Command | Purpose |
 | --- | --- |
@@ -557,7 +772,7 @@ npm run start
 | `npm run start` | Start the production server |
 | `npm run typecheck` | Run the TypeScript compiler without emitting files |
 
-## Deployment and Verification
+### 6.17 Deployment and Verification
 
 TripMind runs behind HTTPS on a Next.js-compatible deployment platform. Each environment supplies its own domain, provider credentials, persistence configuration, and deployment revision; no environment-specific URL or secret is hardcoded in this repository.
 
@@ -570,15 +785,15 @@ TripMind runs behind HTTPS on a Next.js-compatible deployment platform. Each env
 | Production build | `npm run build` |
 | HTTPS | Required for deployed workspace and PWA behavior |
 
-### PWA verification
+#### PWA verification
 
 The application provides a Web App Manifest with `start_url: "/"`, `display: "standalone"`, theme colors, and an SVG application icon. Verification covers manifest loading, HTTPS access, add-to-home-screen behavior, standalone launch, and deep-link navigation.
 
-### Browser verification
+#### Browser verification
 
 Verify the complete flow at approximately 390px mobile width and 1440px desktop width. The check covers Chatbox clarification, generation, itinerary review, Harmony, Energy, disruption replanning, Budget approval, refresh, browser back, direct child-route access, keyboard focus, and font scaling.
 
-## Validation Checklist
+### 6.18 Validation Checklist
 
 After starting the app, verify the following flow:
 
@@ -595,7 +810,7 @@ After starting the app, verify the following flow:
 11. Canceling a draft leaves the formal version unchanged.
 12. Refresh restores state, and `Reset workspace` clears the active session.
 
-## Design Principles
+### 6.19 Design Principles
 
 - **Understand first, generate second**: understand the user before producing an itinerary.
 - **Progressive disclosure**: finish the first plan before opening Harmony, Energy, Budget, or Adapt.
@@ -606,7 +821,7 @@ After starting the app, verify the following flow:
 - **Calm over dashboard**: use a clear timeline and cards instead of an overwhelming control panel.
 - **Mobile-first**: make Chatbox, itinerary review, and approval usable on a phone.
 
-## Subsystem Boundaries and Extension Model
+### 6.20 Subsystem Boundaries and Extension Model
 
 TripMind keeps one source of truth for `TripState`, permissions, validation, approval, and events. Provider adapters allow the subsystem to connect AI, places, maps, routing, pricing, weather, authentication, and persistence services while keeping product behavior stable.
 
@@ -621,11 +836,11 @@ The same contracts cover:
 - Disruption types such as delays, closures, illness, and member drop-out.
 - In-trip tracking, completion records, final trip summaries, and auditable administrative actions.
 
-## Related Documentation
+### 6.21 Related Documentation
 
 The product data-flow diagram is available at `dataflow.png`. This README describes the TripMind domain model, interaction states, visual language, and acceptance language.
 
-## Third-Party Dependencies, Sources, and Licenses
+### 6.22 Third-Party Dependencies, Sources, and Licenses
 
 The following direct dependencies are used by the TripMind application. Versions below are the installed versions recorded in `package-lock.json`.
 
@@ -642,7 +857,7 @@ The following direct dependencies are used by the TripMind application. Versions
 
 The lockfile also records transitive packages. Wanderlog is a product reference used for comparison, not a runtime dependency.
 
-## License
+### 6.23 License
 
 The original source code and documentation in this repository are licensed under the [MIT License](https://opensource.org/license/mit).
 
