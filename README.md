@@ -1,12 +1,6 @@
 # TripMind by Teio
 
 <p align="center">
-  <img src="./public/tripmind-readme-cover.gif" alt="TripMind product cover showing the AI travel-planning experience" width="900" />
-</p>
-
-<p align="center"><em>Explainable travel planning for calmer, more coordinated journeys.</em></p>
-
-<p align="center">
   <img alt="Next.js 15.5.25" src="https://img.shields.io/badge/Next.js-15.5.25-111827?style=flat-square&amp;logo=nextdotjs&amp;logoColor=white" />
   <img alt="React 19.2.8" src="https://img.shields.io/badge/React-19.2.8-149eca?style=flat-square&amp;logo=react&amp;logoColor=white" />
   <img alt="TypeScript 5.9.3" src="https://img.shields.io/badge/TypeScript-5.9.3-3178c6?style=flat-square&amp;logo=typescript&amp;logoColor=white" />
@@ -52,6 +46,12 @@
   - [Deployment and Verification](#617-deployment-and-verification)
   - [Validation Checklist](#618-validation-checklist)
   - [License](#623-license)
+
+<p align="center">
+  <img src="./public/tripmind-readme-cover.gif" alt="TripMind product cover showing the AI travel-planning experience" width="900" />
+</p>
+
+<p align="center"><em>Explainable travel planning for calmer, more coordinated journeys.</em></p>
 
 TripMind is an explainable travel-planning product built around an AI Chatbox and a travel decision subsystem. It turns a natural-language travel idea into a structured itinerary that can be coordinated, evaluated, adapted, approved, and shared. A traveler can start with one sentence, answer only the questions that matter, and keep refining the plan as the trip evolves.
 
