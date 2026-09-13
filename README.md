@@ -114,21 +114,13 @@ The problem tree keeps the diagnosis separate from the intervention: causes sit 
 
 The matrix shows why Chatbox planning, requirement clarification, Experience Diff, locked-plan protection, local replanning, Harmony, and Energy form the prototype core. Live providers and authenticated persistence move into the build phase, while transaction, offline-sync, and administration work remain outside the shortest trusted loop.
 
-#### Selected user-flow board
+#### Selected user flow
 
-<p align="center">
-  <img src="./public/tripmind-product-flow.gif" alt="TripMind selected product flow from a rough idea through planning, Harmony, Energy, disruption handling, and approval" width="820" />
-</p>
+This flow shows how the chosen ideas were reduced to one coherent journey: clarify first, create a formal itinerary, then add Harmony, Energy, Adapt, Budget, and approval around that shared state.
 
-This board shows how the chosen ideas were reduced to one coherent journey: clarify first, create a formal itinerary, then add Harmony, Energy, Adapt, Budget, and approval around that shared state.
+#### Responsibility and feasibility
 
-#### Responsibility and feasibility board
-
-<p align="center">
-  <img src="./public/tripmind-data-flow.gif" alt="TripMind responsibility split between user interface, AI interpretation, deterministic services, pending drafts, and persistence" width="820" />
-</p>
-
-This board captures the team's key feasibility decision: AI handles language and explanation, while deterministic services own calculations, validation, permissions, approval, and formal writes.
+This section captures the team's key feasibility decision: AI handles language and explanation, while deterministic services own calculations, validation, permissions, approval, and formal writes.
 
 ## 3. Design & Prototype
 
@@ -148,10 +140,6 @@ The public prototype link must be tested in an incognito window before submissio
 | Budget and version approval | `/trips/penang-demo/budget` | Review costs, pending changes, approval state, and version history. |
 
 #### Chatbox-to-itinerary flow
-
-<p align="center">
-  <img src="./public/tripmind-product-flow.gif" alt="TripMind Chatbox-to-itinerary interaction" width="820" />
-</p>
 
 The traveler moves from an incomplete idea to clarified requirements and an inspectable itinerary without filling a long form first.
 
@@ -173,11 +161,7 @@ A rain event affects only the relevant afternoon window; alternatives expose tra
 
 #### AI and deterministic decision flow
 
-<p align="center">
-  <img src="./public/tripmind-data-flow.gif" alt="TripMind AI and deterministic decision-flow interaction" width="820" />
-</p>
-
-The visual explains what the Agent may propose and what the deterministic layer must validate before a draft can become formal state.
+This flow explains what the Agent may propose and what the deterministic layer must validate before a draft can become formal state.
 
 ## 4. What Makes It Different
 
@@ -307,12 +291,6 @@ TripMind does not silently overwrite the current itinerary. When a user asks to 
 
 Only approval turns the draft into the next formal version. Closing, canceling, or skipping a preview leaves the current itinerary unchanged.
 
-<p align="center">
-  <img src="./public/tripmind-experience-diff.gif" alt="Experience Diff animation showing a rain replan, candidate trade-offs, a preserved dinner, and approval" width="820" />
-</p>
-
-<p align="center"><em>Inspect the affected window, compare trade-offs, and approve a local replan.</em></p>
-
 #### 3. Group Harmony
 
 Harmony is more than one group score. It shows:
@@ -339,12 +317,6 @@ Travel Energy makes “will this be too tiring?” a visible planning discussion
 - Estimated fatigue risk.
 
 The itinerary page opens Energy as an in-context panel. Travelers can compare a baseline with a lower-load candidate before deciding whether to apply it. Walking and fatigue values are planning estimates, not medical advice.
-
-<p align="center">
-  <img src="./public/tripmind-harmony-energy.gif" alt="Harmony and Travel Energy animation showing satisfaction, walking, rest blocks, transfers, and fatigue-risk estimates" width="820" />
-</p>
-
-<p align="center"><em>Harmony protects the least-satisfied traveler while Energy makes physical load visible before approval.</em></p>
 
 #### 5. Constraint-aware itinerary planning
 
@@ -613,7 +585,7 @@ Version numbers are not tied to specific features. If a step is skipped, later a
 
 ### 6.12 Persistence and Reset
 
-Trip state is managed through a persistence adapter that keeps the formal itinerary, pending drafts, and version history available across refreshes, back navigation, and direct child-route access. Workspace synchronization and permissions are applied at the account and trip level, while private member inputs remain scoped to their owners.
+In the current prototype, trip state is persisted only in the current browser through `localStorage`, which keeps the formal itinerary, pending drafts, and version history available across refreshes, back navigation, and direct child-route access. The prototype has no authenticated accounts, cross-device synchronization, server-side permissions, or private multi-user storage. Those capabilities are planned for the MVP, where workspace synchronization and access control will be applied at the account and trip level while private member inputs remain scoped to their owners.
 
 The trip area provides a `Reset workspace` action for clearing the active itinerary, pending drafts, version history, and local session state before starting a new planning session.
 
@@ -644,10 +616,6 @@ Deterministic domain services
           ↓
 Workspace persistence and connected travel providers
 ```
-
-<p align="center">
-  <img src="./public/tripmind-data-flow.gif" alt="TripMind data flow from user message through Chat UI, Agent, deterministic domain logic, pending draft, and workspace persistence" width="820" />
-</p>
 
 <p align="center"><em>TripMind keeps AI interpretation, deterministic decisions, and formal state transitions separate.</em></p>
 
@@ -685,7 +653,7 @@ The UI communicates estimated values, pending approval, locked arrangements, and
 - **Lucide React 0.468.0**: Icon system.
 - **CSS**: Responsive layout, design tokens, timelines, cards, drawers, and state styling.
 - **React Context**: Cross-route `TripState` and workspace state management.
-- **Persistence adapter**: Formal versions, pending drafts, and workspace recovery.
+- **Browser persistence**: `localStorage` keeps formal versions, pending drafts, and workspace recovery available in the current browser; server-side persistence and synchronization are planned for the MVP.
 - **PWA manifest**: Standalone app configuration for home-screen installation.
 - **Provider adapters**: Stable contracts for AI, place, map, routing, pricing, and weather services.
 
